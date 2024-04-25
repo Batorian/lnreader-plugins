@@ -189,6 +189,8 @@ class NovelUpdates implements Plugin.PluginBase {
 
     let kofi = result.url.toLowerCase().includes('ko-fi');
 
+    let isGemNovels = result.url.toLowerCase().includes('gemnovels');
+
     let isBlossomTranslation = result.url
       .toLowerCase()
       .includes('blossomtranslation');
@@ -253,6 +255,8 @@ class NovelUpdates implements Plugin.PluginBase {
       chapterText = loadedCheerio('.reader-content').html()!;
     } else if (isLightNovelsTls) {
       chapterText = loadedCheerio('.text_story').html()!;
+    } else if (isGemNovels) {
+      chapterText = loadedCheerio('.prevent-select').html()!;
     } else if (isBlossomTranslation) {
       chapterText = loadedCheerio('.manga-child-content').html()!;
     } else if (isAnomalously) {
