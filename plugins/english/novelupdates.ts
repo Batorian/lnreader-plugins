@@ -6,7 +6,7 @@ import { Plugin } from '@typings/plugin';
 class NovelUpdates implements Plugin.PluginBase {
   id = 'novelupdates';
   name = 'Novel Updates';
-  version = '0.5.2';
+  version = '0.5.3';
   icon = 'src/en/novelupdates/icon.png';
   site = 'https://www.novelupdates.com/';
 
@@ -179,6 +179,8 @@ class NovelUpdates implements Plugin.PluginBase {
 
     let isWuxiaWorld = result.url.toLowerCase().includes('wuxiaworld');
 
+    let isAsuraTls = result.url.toLowerCase().includes('asuratls');
+
     let isBlogspot = result.url.toLowerCase().includes('blogspot');
 
     let isTumblr = result.url.toLowerCase().includes('tumblr');
@@ -238,6 +240,8 @@ class NovelUpdates implements Plugin.PluginBase {
       chapterText = loadedCheerio('div.content').html()!;
     } else if (isTumblr) {
       chapterText = loadedCheerio('.post').html()!;
+    } else if (isAsuraTls) {
+      chapterText = loadedCheerio('#reader.chapter').html()!;
     } else if (isBlogspot) {
       loadedCheerio('.post-share-buttons').remove();
       chapterText =
