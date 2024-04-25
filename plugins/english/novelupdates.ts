@@ -244,6 +244,16 @@ class NovelUpdates implements Plugin.PluginBase {
       case url.includes('scribblehub'):
         chapterText = loadedCheerio('div.chp_raw').html()!;
         break;
+      case url.includes('stabbingwithasyringe'):
+        /**
+         * Get the chapter link from the main page
+         */
+        const link_syringe = loadedCheerio('.entry-content a').attr('href')!;
+        const result_syringe = await fetchApi(link_syringe);
+        const body_syringe = await result_syringe.text();
+        const loadedCheerio_syringe = parseHTML(body_syringe);
+        chapterText = loadedCheerio_syringe('.entry-content').html()!;
+        break;
       case url.includes('travistranslations'):
         chapterText = loadedCheerio('.reader-content').html()!;
         break;
