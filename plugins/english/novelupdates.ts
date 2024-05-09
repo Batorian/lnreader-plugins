@@ -169,6 +169,7 @@ class NovelUpdates implements Plugin.PluginBase {
       path: novelPath,
       name: loadedCheerio('.seriestitlenu').text() || 'Untitled',
       cover: loadedCheerio('.wpb_wrapper img').attr('src'),
+      groups: '',
       chapters: [],
       totalGroups: [],
       totalPages: 1,
@@ -230,6 +231,7 @@ class NovelUpdates implements Plugin.PluginBase {
 
     novel.chapters = this.parseChapters(loadedCheerio);
 
+    console.log(novel);
     return novel;
   }
 
