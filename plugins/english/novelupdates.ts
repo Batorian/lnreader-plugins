@@ -2,11 +2,12 @@ import { CheerioAPI, load as parseHTML } from 'cheerio';
 import { fetchApi, fetchFile } from '@libs/fetch';
 import { Filters, FilterTypes } from '@libs/filterInputs';
 import { Plugin } from '@typings/plugin';
+import GroupItem = Plugin.GroupItem;
 
 class NovelUpdates implements Plugin.PluginBase {
   id = 'novelupdates';
   name = 'Novel Updates';
-  version = '0.5.4';
+  version = '0.6.0';
   icon = 'src/en/novelupdates/icon.png';
   site = 'https://www.novelupdates.com/';
 
@@ -89,6 +90,74 @@ class NovelUpdates implements Plugin.PluginBase {
     return this.parseNovels(loadedCheerio);
   }
 
+  async createFormData(
+    action: string,
+    novelId: string,
+    groupId?: string,
+  ): Promise<FormData> {
+    const formData = new FormData();
+    formData.append('action', action);
+    formData.append('mygrr', '0');
+    formData.append('mypostid', novelId);
+    if (groupId) {
+      formData.append('mygrpfilter', groupId);
+    }
+    return formData;
+  }
+
+  async fetchAndParse(formData: FormData): Promise<CheerioAPI> {
+    const link = `${this.site}wp-admin/admin-ajax.php`;
+    const text = await fetchApi(link, {
+      method: 'POST',
+      body: formData,
+    }).then(data => data.text());
+    return parseHTML(text);
+  }
+
+  parseGroups(loadedCheerio: CheerioAPI) {
+    const groups: Plugin.GroupItem[] = [];
+
+    loadedCheerio('.sp_grouptable li').each((i, el) => {
+      const groupName = loadedCheerio(el).text().trim();
+      const groupValue = loadedCheerio(el).find('input').attr('value')!;
+
+      groups.push({
+        name: groupName,
+        value: groupValue,
+      });
+    });
+
+    return groups;
+  }
+
+  parseChapters(loadedCheerio: CheerioAPI) {
+    const chapters: Plugin.ChapterItem[] = [];
+
+    const nameReplacements: { [key: string]: string } = {
+      'v': 'volume ',
+      'c': ' chapter ',
+      'part': 'part ',
+      'ss': 'SS',
+    };
+
+    loadedCheerio('li.sp_li_chp').each((i, el) => {
+      let chapterName = loadedCheerio(el).text();
+      for (let name in nameReplacements) {
+        chapterName = chapterName.replace(name, nameReplacements[name]);
+      }
+      chapterName = chapterName.replace(/\b\w/g, l => l.toUpperCase()).trim();
+      const chapterUrl =
+        'https:' + loadedCheerio(el).find('a').first().next().attr('href');
+
+      chapters.push({
+        name: chapterName,
+        path: chapterUrl.replace(this.site, ''),
+      });
+    });
+
+    return chapters.reverse();
+  }
+
   async parseNovel(novelPath: string): Promise<Plugin.SourceNovel> {
     const url = this.site + novelPath;
     const result = await fetchApi(url);
@@ -96,11 +165,13 @@ class NovelUpdates implements Plugin.PluginBase {
 
     let loadedCheerio = parseHTML(body);
 
-    const novel: Plugin.SourceNovel = {
+    const novel: Plugin.SourceNovel & { totalPages: number } = {
       path: novelPath,
       name: loadedCheerio('.seriestitlenu').text() || 'Untitled',
       cover: loadedCheerio('.wpb_wrapper img').attr('src'),
       chapters: [],
+      totalGroups: [],
+      totalPages: 1,
     };
 
     novel.author = loadedCheerio('#authtag')
@@ -124,49 +195,72 @@ class NovelUpdates implements Plugin.PluginBase {
 
     novel.summary = summary + `\n\nType: ${type}`;
 
-    const chapter: Plugin.ChapterItem[] = [];
+    const novelId = loadedCheerio('input#mypostid').attr('value')!;
+
+    const formDataGroup = await this.createFormData(
+      'nd_getgroupnovel',
+      novelId,
+    );
+    loadedCheerio = await this.fetchAndParse(formDataGroup);
+
+    const groups = this.parseGroups(loadedCheerio);
+
+    novel.groups = groups.map(group => group.name).join(', ');
+
+    const allGroupValues = groups.map(group => group.value).join(',');
+
+    if (groups.length > 1) {
+      novel.totalGroups = [
+        { name: 'All Groups', value: allGroupValues },
+        ...groups,
+      ];
+    } else {
+      novel.totalGroups = groups;
+    }
+    novel.totalPages = novel.totalGroups.length;
+
+    /**
+     * parse first page
+     */
+    const formDataChapter = await this.createFormData(
+      'nd_getchapters',
+      novelId,
+    );
+    loadedCheerio = await this.fetchAndParse(formDataChapter);
+
+    novel.chapters = this.parseChapters(loadedCheerio);
+
+    return novel;
+  }
+
+  async parsePage(
+    novelPath: string,
+    page: string,
+    groups: GroupItem[],
+  ): Promise<Plugin.SourcePage> {
+    const url = this.site + novelPath;
+    const result = await fetchApi(url);
+    const body = await result.text();
+
+    let loadedCheerio = parseHTML(body);
 
     const novelId = loadedCheerio('input#mypostid').attr('value')!;
 
-    const formData = new FormData();
-    formData.append('action', 'nd_getchapters');
-    formData.append('mygrr', '0');
-    formData.append('mypostid', novelId);
+    /**
+     * turn page string into integer
+     */
+    const pageIndex = parseInt(page);
 
-    const link = `${this.site}wp-admin/admin-ajax.php`;
+    const formDataChapter = await this.createFormData(
+      'nd_getchapters',
+      novelId,
+      groups[pageIndex].value,
+    );
+    loadedCheerio = await this.fetchAndParse(formDataChapter);
 
-    const text = await fetchApi(link, {
-      method: 'POST',
-      body: formData,
-    }).then(data => data.text());
+    const chapters = this.parseChapters(loadedCheerio);
 
-    loadedCheerio = parseHTML(text);
-
-    const nameReplacements: { [key: string]: string } = {
-      'v': 'volume ',
-      'c': ' chapter ',
-      'part': 'part ',
-      'ss': 'SS',
-    };
-
-    loadedCheerio('li.sp_li_chp').each((i, el) => {
-      let chapterName = loadedCheerio(el).text();
-      for (let name in nameReplacements) {
-        chapterName = chapterName.replace(name, nameReplacements[name]);
-      }
-      chapterName = chapterName.replace(/\b\w/g, l => l.toUpperCase()).trim();
-      const chapterUrl =
-        'https:' + loadedCheerio(el).find('a').first().next().attr('href');
-
-      chapter.push({
-        name: chapterName,
-        path: chapterUrl.replace(this.site, ''),
-      });
-    });
-
-    novel.chapters = chapter.reverse();
-
-    return novel;
+    return { chapters };
   }
 
   getLocation(href: string) {
