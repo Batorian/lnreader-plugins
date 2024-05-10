@@ -543,7 +543,7 @@ class NovelUpdates implements Plugin.PluginBase {
     ) {
       throw new Error('Captcha error, please open in webview.');
     }
-    if (!result.url) {
+    if (!result.ok) {
       throw new Error(
         `Could not reach site (${result.status}), try to open in webview.`,
       );
