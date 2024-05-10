@@ -2,7 +2,6 @@ import { CheerioAPI, load as parseHTML } from 'cheerio';
 import { fetchApi, fetchFile } from '@libs/fetch';
 import { Filters, FilterTypes } from '@libs/filterInputs';
 import { Plugin } from '@typings/plugin';
-import GroupItem = Plugin.GroupItem;
 
 class NovelUpdates implements Plugin.PluginBase {
   id = 'novelupdates';
@@ -114,22 +113,6 @@ class NovelUpdates implements Plugin.PluginBase {
     return parseHTML(text);
   }
 
-  parseGroups(loadedCheerio: CheerioAPI) {
-    const groups: Plugin.GroupItem[] = [];
-
-    loadedCheerio('.sp_grouptable li').each((i, el) => {
-      const groupName = loadedCheerio(el).text().trim();
-      const groupValue = loadedCheerio(el).find('input').attr('value')!;
-
-      groups.push({
-        name: groupName,
-        value: groupValue,
-      });
-    });
-
-    return groups;
-  }
-
   parseChapters(loadedCheerio: CheerioAPI) {
     const chapters: Plugin.ChapterItem[] = [];
 
@@ -169,9 +152,7 @@ class NovelUpdates implements Plugin.PluginBase {
       path: novelPath,
       name: loadedCheerio('.seriestitlenu').text() || 'Untitled',
       cover: loadedCheerio('.wpb_wrapper img').attr('src'),
-      groups: '',
       chapters: [],
-      totalGroups: [],
       totalPages: 1,
     };
 
@@ -204,21 +185,22 @@ class NovelUpdates implements Plugin.PluginBase {
     );
     loadedCheerio = await this.fetchAndParse(formDataGroup);
 
-    const groups = this.parseGroups(loadedCheerio);
+    let groupNames: string[] = [];
+    let groupIds: string[] = [];
 
-    novel.groups = groups.map(group => group.name).join(', ');
+    loadedCheerio('.sp_grouptable li').each((i, el) => {
+      groupNames.push(loadedCheerio(el).text().trim());
+      groupIds.push(loadedCheerio(el).find('input').attr('value')!);
+    });
 
-    const allGroupValues = groups.map(group => group.value).join(',');
+    const groups: number = Math.min(groupNames.length, groupIds.length);
 
-    if (groups.length > 1) {
-      novel.totalGroups = [
-        { name: 'All Groups', value: allGroupValues },
-        ...groups,
-      ];
-    } else {
-      novel.totalGroups = groups;
+    novel.groupName = groupNames.join(',');
+    novel.groupId = groupIds.join(',');
+
+    if (groups > 1) {
+      novel.totalPages = groups + 1;
     }
-    novel.totalPages = novel.totalGroups.length;
 
     /**
      * parse first page
@@ -231,14 +213,13 @@ class NovelUpdates implements Plugin.PluginBase {
 
     novel.chapters = this.parseChapters(loadedCheerio);
 
-    console.log(novel);
     return novel;
   }
 
   async parsePage(
     novelPath: string,
     page: string,
-    groups: GroupItem[],
+    groupId: string,
   ): Promise<Plugin.SourcePage> {
     const url = this.site + novelPath;
     const result = await fetchApi(url);
@@ -248,15 +229,10 @@ class NovelUpdates implements Plugin.PluginBase {
 
     const novelId = loadedCheerio('input#mypostid').attr('value')!;
 
-    /**
-     * turn page string into integer
-     */
-    const pageIndex = parseInt(page);
-
     const formDataChapter = await this.createFormData(
       'nd_getchapters',
       novelId,
-      groups[pageIndex].value,
+      groupId,
     );
     loadedCheerio = await this.fetchAndParse(formDataChapter);
 

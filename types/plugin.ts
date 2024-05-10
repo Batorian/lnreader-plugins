@@ -1,10 +1,6 @@
 import { FilterToValues, Filters } from '@libs/filterInputs';
 import { languages } from '@libs/languages';
 export namespace Plugin {
-  export interface GroupItem {
-    name: string;
-    value: string;
-  }
   export interface ChapterItem {
     name: string;
     path: string;
@@ -35,10 +31,10 @@ export namespace Plugin {
     author?: string;
     artist?: string;
     status?: string;
-    groups?: string;
+    groupName?: string;
+    groupId?: string;
     chapters?: ChapterItem[];
     latestChapter?: ChapterItem;
-    totalGroups?: GroupItem[];
   }
 
   export interface SourcePage {
@@ -114,7 +110,7 @@ export namespace Plugin {
     parsePage(
       novelPath: string,
       page: string,
-      groups?: GroupItem[],
+      groupId?: string,
     ): Promise<SourcePage>;
   }
 }
