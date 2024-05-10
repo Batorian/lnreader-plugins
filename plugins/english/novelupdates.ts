@@ -221,6 +221,7 @@ class NovelUpdates implements Plugin.PluginBase {
     page: string,
     groupId: string,
   ): Promise<Plugin.SourcePage> {
+    console.log('parsePage:', novelPath, page, groupId);
     const url = this.site + novelPath;
     const result = await fetchApi(url);
     const body = await result.text();
@@ -228,6 +229,12 @@ class NovelUpdates implements Plugin.PluginBase {
     let loadedCheerio = parseHTML(body);
 
     const novelId = loadedCheerio('input#mypostid').attr('value')!;
+
+    if (groupId.split(',').length > 1) {
+      let groupIds = [groupId].concat(groupId.split(','));
+      let pageIndex = parseInt(page);
+      groupId = groupIds[pageIndex - 1];
+    }
 
     const formDataChapter = await this.createFormData(
       'nd_getchapters',
