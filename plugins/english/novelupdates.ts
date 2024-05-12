@@ -165,7 +165,7 @@ class NovelUpdates implements Plugin.PluginBase {
       path: novelPath,
       name: loadedCheerio('.seriestitlenu').text() || 'Untitled',
       cover: loadedCheerio('.wpb_wrapper img').attr('src'),
-      totalPages: await this.getTotalPages(novelPath),
+      totalPages: 1,
       chapters: [],
     };
 
@@ -189,6 +189,8 @@ class NovelUpdates implements Plugin.PluginBase {
     const summary = loadedCheerio('#editdescription').text().trim();
 
     novel.summary = summary + `\n\nType: ${type}`;
+
+    novel.totalPages = await this.getTotalPages(novelPath);
 
     novel.chapters = await this.parseChapters(novelPath, '1');
 
