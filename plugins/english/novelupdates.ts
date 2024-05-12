@@ -89,17 +89,83 @@ class NovelUpdates implements Plugin.PluginBase {
     return this.parseNovels(loadedCheerio);
   }
 
-  async parseNovel(novelPath: string): Promise<Plugin.SourceNovel> {
+  async getTotalPages(novelPath: string): Promise<number> {
     const url = this.site + novelPath;
     const result = await fetchApi(url);
     const body = await result.text();
 
     let loadedCheerio = parseHTML(body);
 
-    const novel: Plugin.SourceNovel = {
+    const bloatClasses = ['.next_page', '.previous_page'];
+    bloatClasses.map(tag => loadedCheerio(tag).remove());
+
+    return loadedCheerio('.digg_pagination').length > 0
+      ? parseInt(
+          loadedCheerio('.digg_pagination').children().last().text().trim(),
+        )
+      : 1;
+  }
+
+  async parseChapters(
+    novelPath: string,
+    page: string,
+  ): Promise<Plugin.ChapterItem[]> {
+    const totalPages = await this.getTotalPages(novelPath);
+    const pageInt = parseInt(page);
+
+    const url = this.site + novelPath + '?pg=' + (totalPages - pageInt + 1);
+    const result = await fetchApi(url);
+    const body = await result.text();
+
+    let loadedCheerio = parseHTML(body);
+
+    const chapters: Plugin.ChapterItem[] = [];
+
+    const nameReplacements: { [key: string]: string } = {
+      'v': 'volume ',
+      'c': ' chapter ',
+      'part': 'part ',
+      'ss': 'SS',
+    };
+
+    loadedCheerio('.wpb_wrapper table#myTable tbody tr').each((i, el) => {
+      const tdElement = loadedCheerio(el).find('td');
+      let chapterName = tdElement.find('a.chp-release').attr('title')!;
+      for (let name in nameReplacements) {
+        chapterName = chapterName.replace(name, nameReplacements[name]);
+      }
+      const chapterUrl =
+        'https:' + tdElement.find('a.chp-release').attr('href');
+      const chapterReleaseTime = loadedCheerio(el)
+        .find('td')
+        .first()
+        .text()
+        .trim();
+
+      chapters.push({
+        name: chapterName.replace(/\b\w/g, l => l.toUpperCase()),
+        path: chapterUrl.replace(this.site, ''),
+        releaseTime: chapterReleaseTime,
+      });
+    });
+
+    return chapters.reverse();
+  }
+
+  async parseNovel(
+    novelPath: string,
+  ): Promise<Plugin.SourceNovel & { totalPages: number }> {
+    const url = this.site + novelPath;
+    const result = await fetchApi(url);
+    const body = await result.text();
+
+    let loadedCheerio = parseHTML(body);
+
+    const novel: Plugin.SourceNovel & { totalPages: number } = {
       path: novelPath,
       name: loadedCheerio('.seriestitlenu').text() || 'Untitled',
       cover: loadedCheerio('.wpb_wrapper img').attr('src'),
+      totalPages: await this.getTotalPages(novelPath),
       chapters: [],
     };
 
@@ -124,49 +190,15 @@ class NovelUpdates implements Plugin.PluginBase {
 
     novel.summary = summary + `\n\nType: ${type}`;
 
-    const chapter: Plugin.ChapterItem[] = [];
-
-    const novelId = loadedCheerio('input#mypostid').attr('value')!;
-
-    const formData = new FormData();
-    formData.append('action', 'nd_getchapters');
-    formData.append('mygrr', '0');
-    formData.append('mypostid', novelId);
-
-    const link = `${this.site}wp-admin/admin-ajax.php`;
-
-    const text = await fetchApi(link, {
-      method: 'POST',
-      body: formData,
-    }).then(data => data.text());
-
-    loadedCheerio = parseHTML(text);
-
-    const nameReplacements: { [key: string]: string } = {
-      'v': 'volume ',
-      'c': ' chapter ',
-      'part': 'part ',
-      'ss': 'SS',
-    };
-
-    loadedCheerio('li.sp_li_chp').each((i, el) => {
-      let chapterName = loadedCheerio(el).text();
-      for (let name in nameReplacements) {
-        chapterName = chapterName.replace(name, nameReplacements[name]);
-      }
-      chapterName = chapterName.replace(/\b\w/g, l => l.toUpperCase()).trim();
-      const chapterUrl =
-        'https:' + loadedCheerio(el).find('a').first().next().attr('href');
-
-      chapter.push({
-        name: chapterName,
-        path: chapterUrl.replace(this.site, ''),
-      });
-    });
-
-    novel.chapters = chapter.reverse();
+    novel.chapters = await this.parseChapters(novelPath, '1');
 
     return novel;
+  }
+
+  async parsePage(novelPath: string, page: string): Promise<Plugin.SourcePage> {
+    const chapters = await this.parseChapters(novelPath, page);
+
+    return { chapters };
   }
 
   getLocation(href: string) {
