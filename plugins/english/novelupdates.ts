@@ -194,7 +194,6 @@ class NovelUpdates implements Plugin.PluginBase {
 
     novel.chapters = await this.parseChapters(novelPath, '1');
 
-    console.log(novel);
     return novel;
   }
 
