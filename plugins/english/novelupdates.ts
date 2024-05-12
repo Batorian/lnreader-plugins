@@ -143,7 +143,7 @@ class NovelUpdates implements Plugin.PluginBase {
         .trim();
 
       chapters.push({
-        name: chapterName.replace(/\b\w/g, l => l.toUpperCase()),
+        name: chapterName.replace(/\b\w/g, l => l.toUpperCase()).trim(),
         path: chapterUrl.replace(this.site, ''),
         releaseTime: chapterReleaseTime,
       });
@@ -194,6 +194,7 @@ class NovelUpdates implements Plugin.PluginBase {
 
     novel.chapters = await this.parseChapters(novelPath, '1');
 
+    console.log(novel);
     return novel;
   }
 
