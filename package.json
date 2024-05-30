@@ -1,6 +1,6 @@
 {
     "name": "lnreader-plugins",
-    "version": "2.1.1",
+    "version": "2.1.0",
     "description": "Plugins repo for LNReader",
     "main": "index.js",
     "scripts": {
@@ -13,7 +13,8 @@
         "host-linux": "chmod +x ./host.sh && ./host.sh",
         "host-windows": "powershell ./host.ps1",
         "prettier": "prettier --write \"./**/*.{js,ts}\"",
-        "prepare": "husky install"
+        "prepare": "husky install",
+        "icons": "npm run clearMultisrc && npm run generate && npm run json && ts-node ./scripts/icon_reloading.ts"
     },
     "author": "LNReader",
     "license": "MIT",
@@ -25,12 +26,13 @@
         "dayjs": "^1.11.10",
         "express": "^4.18.2",
         "htmlparser2": "^9.1.0",
+        "image-size": "^1.1.1",
         "less": "^4.2.0",
         "module-alias": "^2.2.3",
         "protobufjs": "^7.2.6",
         "qs": "^6.11.2",
         "sanitize-html": "^2.12.1",
-        "terser": "^5.30.4",
+        "terser": "^5.31.0",
         "ts-node": "^10.9.2",
         "tsc-alias": "^1.8.8",
         "typescript": "^5.3.3",

@@ -214,6 +214,7 @@ class NovelUpdates implements Plugin.PluginBase {
     loadedCheerio: CheerioAPI,
     domain: string[],
     url: string,
+    result: Response,
   ) {
     let bloatClasses = [];
     let chapterTitle = '';
@@ -236,6 +237,25 @@ class NovelUpdates implements Plugin.PluginBase {
         chapterTitle = titleElementAsura.text()!;
         titleElementAsura.remove();
         chapterContent = loadedCheerio('.post-body').html()!;
+        if (chapterTitle && chapterContent) {
+          chapterText = `<h2>${chapterTitle}</h2><hr><br>${chapterContent}`;
+        }
+        break;
+      case 'helscans':
+        chapterTitle = loadedCheerio('.entry-title-main').first().text()!;
+        const chapterStringHelScans =
+          'Chapter ' + chapterTitle.split('Chapter')[1].trim();
+        loadedCheerio('#readerarea.rdminimal')
+          .children()
+          .each((idx, ele) => {
+            let elementText = loadedCheerio(ele).text();
+            if (elementText.includes(chapterStringHelScans)) {
+              chapterTitle = elementText;
+              loadedCheerio(ele).remove();
+              return false;
+            }
+          });
+        chapterContent = loadedCheerio('#readerarea.rdminimal').html()!;
         if (chapterTitle && chapterContent) {
           chapterText = `<h2>${chapterTitle}</h2><hr><br>${chapterContent}`;
         }
@@ -297,10 +317,22 @@ class NovelUpdates implements Plugin.PluginBase {
         }
         break;
       case 'novelworldtranslations':
-        bloatClasses = ['.separator', 'p[dir="ltr"]'];
+        bloatClasses = ['.separator img'];
         bloatClasses.map(tag => loadedCheerio(tag).remove());
+        loadedCheerio('.entry-content a')
+          .filter((_, el) => {
+            return (
+              loadedCheerio(el)
+                .attr('href')
+                ?.includes('https://novelworldtranslations.blogspot.com') ||
+              false
+            );
+          })
+          .each((_, el) => {
+            loadedCheerio(el).parent().remove();
+          });
         chapterTitle = loadedCheerio('.entry-title').first().text()!;
-        chapterContent = loadedCheerio('.entry-content p span span')
+        chapterContent = loadedCheerio('.entry-content')
           .html()!
           .replace(/&nbsp;/g, '')
           .replace(/\n/g, '<br>');
@@ -374,10 +406,15 @@ class NovelUpdates implements Plugin.PluginBase {
          */
         const ageVerification = loadedCheerio('main').text().toLowerCase()!;
         if (ageVerification.includes('age verification required')) {
-          throw new Error('Age verification required, please open in webview');
+          throw new Error('Age verification required, please open in webview.');
         }
         chapterTitle = `${loadedCheerio('.pl-4 h1').first().text()!} | ${loadedCheerio('.pl-4 div').first().text()!}`;
-        chapterContent = loadedCheerio('#chapter-body').html()!;
+        chapterContent = loadedCheerio('#startContainer + * > *')
+          .first()
+          .html()!;
+        if (!chapterContent) {
+          chapterContent = `${loadedCheerio('#chapter-body').html()!}<hr><br>There could be missing content, please check in webview.`;
+        }
         if (chapterTitle && chapterContent) {
           chapterText = `<h2>${chapterTitle}</h2><hr><br>${chapterContent}`;
         }
@@ -499,6 +536,9 @@ class NovelUpdates implements Plugin.PluginBase {
       throw new Error('Captcha error, please open in webview.');
     }
     if (!result.ok) {
+      /**
+       * Check if the chapter url is wrong or the site is genuinely down
+       */
       throw new Error(
         `Could not reach site (${result.status}), try to open in webview.`,
       );
@@ -544,6 +584,7 @@ class NovelUpdates implements Plugin.PluginBase {
     const outliers = [
       'anotivereads',
       'asuratls',
+      'helscans',
       'mirilu',
       'novelworldtranslations',
       'sacredtexttranslations',
@@ -572,7 +613,7 @@ class NovelUpdates implements Plugin.PluginBase {
      * - Gem Novels
      * - Genesis Translations (Manually added)
      * - Goblinslate
-     * - Hel Scans
+     * - Hel Scans (Outlier)
      * - ippotranslations
      * - JATranslations
      * - Light Novels Translations
@@ -588,7 +629,12 @@ class NovelUpdates implements Plugin.PluginBase {
      * - Zetro Translation (Outlier)
      */
     if (!isWordPress && !isBlogspot) {
-      chapterText = await this.getChapterBody(loadedCheerio, domain, url);
+      chapterText = await this.getChapterBody(
+        loadedCheerio,
+        domain,
+        url,
+        result,
+      );
     } else if (isBlogspot) {
       bloatClasses = ['.button-container', '.separator'];
       bloatClasses.map(tag => loadedCheerio(tag).remove());
@@ -608,7 +654,9 @@ class NovelUpdates implements Plugin.PluginBase {
         '.chapter-warning',
         '.entry-meta',
         '.ezoic-ad',
+        '.genesistls-watermark',
         '.mb-center',
+        '.modern-footnotes-footnote__note',
         '.patreon-widget',
         '.post-cats',
         '.pre-bar',
