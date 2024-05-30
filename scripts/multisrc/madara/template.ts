@@ -130,7 +130,7 @@ class MadaraPlugin implements Plugin.PluginBase {
         const novel: Plugin.NovelItem = {
           name: novelName,
           cover: novelCover,
-          path: novelUrl.replace(this.site, ''),
+          path: novelUrl.replace(/https?:\/\/.*?\//, '/'),
         };
         novels.push(novel);
       },
@@ -254,7 +254,7 @@ class MadaraPlugin implements Plugin.PluginBase {
 
       chapters.push({
         name: chapterName,
-        path: chapterUrl.replace(this.site, ''),
+        path: chapterUrl.replace(/https?:\/\/.*?\//, '/'),
         releaseTime: releaseDate || null,
         chapterNumber: totalChapters - chapterIndex,
       });
