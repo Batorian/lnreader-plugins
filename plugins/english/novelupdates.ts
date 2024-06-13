@@ -747,10 +747,6 @@ class NovelUpdates implements Plugin.PluginBase {
     return this.parseNovels(loadedCheerio);
   }
 
-  fetchImage(url: string): Promise<string | undefined> {
-    return fetchFile(url);
-  }
-
   filters = {
     sort: {
       label: 'Sort Results By',
