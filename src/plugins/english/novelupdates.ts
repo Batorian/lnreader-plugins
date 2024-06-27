@@ -258,6 +258,7 @@ class NovelUpdates implements Plugin.PluginBase {
       case 'hostednovel':
         chapterTitle = loadedCheerio('#chapter-title').first().text()!;
         chapterContent = loadedCheerio('#chapter-content').html()!;
+        await new Promise(resolve => setTimeout(resolve, 2000));
         chapterComments = loadedCheerio('#comments').html()!;
         if (chapterTitle && chapterContent) {
           chapterText = `<h2>${chapterTitle}</h2><hr><br>${chapterContent}`;
