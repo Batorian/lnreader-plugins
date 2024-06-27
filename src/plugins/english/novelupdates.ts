@@ -6,7 +6,7 @@ import { Plugin } from '@typings/plugin';
 class NovelUpdates implements Plugin.PluginBase {
   id = 'novelupdates';
   name = 'Novel Updates';
-  version = '0.6.1';
+  version = '0.6.0';
   icon = 'src/en/novelupdates/icon.png';
   site = 'https://www.novelupdates.com/';
 
@@ -559,6 +559,7 @@ class NovelUpdates implements Plugin.PluginBase {
     let bloatClasses = [];
     let chapterTitle = '';
     let chapterContent = '';
+    let chapterComments = '';
     let chapterText = '';
 
     const result = await fetchApi(this.site + chapterPath);
@@ -749,8 +750,12 @@ class NovelUpdates implements Plugin.PluginBase {
         loadedCheerio('.td-page-content').html() ||
         loadedCheerio('#content').html() ||
         loadedCheerio('article.post').html()!;
+      chapterComments = loadedCheerio('.ast-comment-list').html()!;
       if (chapterTitle && chapterContent) {
         chapterText = `<h2>${chapterTitle}</h2><hr><br>${chapterContent}`;
+        if (chapterComments) {
+          chapterText += `<hr><br><details><summary>Comments</summary>${chapterComments}</details>`;
+        }
       }
     }
 
