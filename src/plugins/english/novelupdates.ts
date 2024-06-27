@@ -184,6 +184,7 @@ class NovelUpdates implements Plugin.PluginBase {
     let bloatClasses = [];
     let chapterTitle = '';
     let chapterContent = '';
+    let chapterComments = '';
     let chapterText = '';
 
     const unwanted = ['blogspot', 'casper', 'wordpress', 'www'];
@@ -257,8 +258,12 @@ class NovelUpdates implements Plugin.PluginBase {
       case 'hostednovel':
         chapterTitle = loadedCheerio('#chapter-title').first().text()!;
         chapterContent = loadedCheerio('#chapter-content').html()!;
+        chapterComments = loadedCheerio('#comments').html()!;
         if (chapterTitle && chapterContent) {
           chapterText = `<h2>${chapterTitle}</h2><hr><br>${chapterContent}`;
+          if (chapterComments) {
+            chapterText += `<details><summary>Comments</summary>${chapterComments}</details>`;
+          }
         }
         break;
       case 'inoveltranslation':
