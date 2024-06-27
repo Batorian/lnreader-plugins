@@ -6,7 +6,7 @@ import { Plugin } from '@typings/plugin';
 class NovelUpdates implements Plugin.PluginBase {
   id = 'novelupdates';
   name = 'Novel Updates';
-  version = '0.6.0';
+  version = '0.6.1';
   icon = 'src/en/novelupdates/icon.png';
   site = 'https://www.novelupdates.com/';
 
@@ -261,10 +261,7 @@ class NovelUpdates implements Plugin.PluginBase {
         await new Promise(resolve => setTimeout(resolve, 2000));
         chapterComments = loadedCheerio('#comments').html()!;
         if (chapterTitle && chapterContent) {
-          chapterText = `<h2>${chapterTitle}</h2><hr><br>${chapterContent}`;
-          if (chapterComments) {
-            chapterText += `<details><summary>Comments</summary>${chapterComments}</details>`;
-          }
+          chapterText = `<h2>${chapterTitle}</h2><hr><br>${chapterContent}<hr><br><details><summary>Comments</summary>${chapterComments}</details>`;
         }
         break;
       case 'inoveltranslation':
