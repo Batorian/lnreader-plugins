@@ -102,64 +102,6 @@ class NovelUpdates implements Plugin.PluginBase {
     return this.parseNovels(loadedCheerio);
   }
 
-  async parseChapters(
-    novelPath: string,
-    pages: number,
-  ): Promise<Plugin.ChapterItem[]> {
-    const pagesArray = Array.from({ length: pages }, (_, i) => i + 1);
-    const allChapters: Plugin.ChapterItem[] = [];
-
-    // Function to parse a single page
-    const parsePage = async (page: number) => {
-      const url = `${this.site}${novelPath}?pg=${page}`;
-      const result = await fetchApi(url);
-      const body = await result.text();
-
-      const loadedCheerio = parseHTML(body);
-
-      const nameReplacements: Record<string, string> = {
-        'v': 'volume ',
-        'c': ' chapter ',
-        'part': 'part ',
-        'ss': 'SS',
-      };
-
-      const chapters: Plugin.ChapterItem[] = [];
-
-      loadedCheerio('#myTable tbody tr').each((_, el) => {
-        let chapterName =
-          loadedCheerio(el).find('a').last().attr('title') || 'No Title Found';
-        for (const name in nameReplacements) {
-          chapterName = chapterName.replace(name, nameReplacements[name]);
-        }
-        chapterName = chapterName.replace(/\b\w/g, l => l.toUpperCase()).trim();
-        const chapterPath =
-          'https:' + loadedCheerio(el).find('a').last().attr('href');
-        const chapterDate = loadedCheerio(el).find('td').first().text();
-
-        if (chapterPath) {
-          chapters.push({
-            name: chapterName,
-            path: chapterPath.replace(this.site, ''),
-            releaseTime: chapterDate,
-          });
-        }
-      });
-
-      return chapters;
-    };
-
-    // Parse all pages in parallel
-    const chaptersArray = await Promise.all(pagesArray.map(parsePage));
-
-    // Merge all chapters into a single array
-    for (const chapters of chaptersArray) {
-      allChapters.push(...chapters);
-    }
-
-    return allChapters.length === 0 ? [] : allChapters.reverse();
-  }
-
   async parseNovel(novelPath: string): Promise<Plugin.SourceNovel> {
     const url = this.site + novelPath;
     const result = await fetchApi(url);
@@ -195,13 +137,47 @@ class NovelUpdates implements Plugin.PluginBase {
 
     novel.summary = summary + `\n\nType: ${type}`;
 
-    const bloatElements = ['.previous_page', '.next_page'];
-    bloatElements.forEach(tag => loadedCheerio(tag).remove());
+    const chapter: Plugin.ChapterItem[] = [];
 
-    const pages =
-      parseInt(loadedCheerio('.digg_pagination a').last().text()) || 1;
+    const novelId = loadedCheerio('input#mypostid').attr('value')!;
 
-    novel.chapters = await this.parseChapters(novelPath, pages);
+    const formData = new FormData();
+    formData.append('action', 'nd_getchapters');
+    formData.append('mygrr', '0');
+    formData.append('mypostid', novelId);
+
+    const link = `${this.site}wp-admin/admin-ajax.php`;
+
+    const text = await fetchApi(link, {
+      method: 'POST',
+      body: formData,
+    }).then(data => data.text());
+
+    loadedCheerio = parseHTML(text);
+
+    const nameReplacements: Record<string, string> = {
+      'v': 'volume ',
+      'c': ' chapter ',
+      'part': 'part ',
+      'ss': 'SS',
+    };
+
+    loadedCheerio('li.sp_li_chp').each((i, el) => {
+      let chapterName = loadedCheerio(el).text();
+      for (const name in nameReplacements) {
+        chapterName = chapterName.replace(name, nameReplacements[name]);
+      }
+      chapterName = chapterName.replace(/\b\w/g, l => l.toUpperCase()).trim();
+      const chapterUrl =
+        'https:' + loadedCheerio(el).find('a').first().next().attr('href');
+
+      chapter.push({
+        name: chapterName,
+        path: chapterUrl.replace(this.site, ''),
+      });
+    });
+
+    novel.chapters = chapter.reverse();
 
     return novel;
   }
