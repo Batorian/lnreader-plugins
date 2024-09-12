@@ -274,6 +274,23 @@ class NovelUpdates implements Plugin.PluginBase {
         chapterText = `<h2>${chapterTitle}</h2><hr><br>${chapterContent}`;
         break;
       case 'hiraethtranslation':
+        const bloatAttributes = [
+          'data-lazy-srcset',
+          'data-lazy-src',
+          'data-lazy-sizes',
+          'data-ll-status',
+        ];
+        // Iterate over each selector for images that may have these attributes
+        ['img.entered', 'img.lazyloaded'].forEach(selector => {
+          loadedCheerio(selector).each(function () {
+            // Loop through the attributes and remove them from the image
+            bloatAttributes.forEach(attr => {
+              loadedCheerio(this).removeAttr(attr); // Remove specified attribute
+            });
+            // Optionally, remove the class if you want
+            loadedCheerio(this).removeClass('entered lazyloaded'); // Remove class if needed
+          });
+        });
         chapterTitle =
           loadedCheerio('li.active').first().text() || 'Title not found';
         chapterContent = loadedCheerio('.text-left').html()!;
