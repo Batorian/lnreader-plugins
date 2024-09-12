@@ -412,7 +412,7 @@ class NovelUpdates implements Plugin.PluginBase {
           '.zoomdesc-cont p img',
           '.zoomdesc-cont p noscript',
         ];
-        bloatElements.map(tag => loadedCheerioSnow(tag).remove());
+        bloatElements.forEach(tag => loadedCheerioSnow(tag).remove());
         chapterContent = loadedCheerioSnow('.zoomdesc-cont').html()!;
         const titleElement_snow = loadedCheerioSnow('.scroller h2').first();
         if (titleElement_snow.length) {
