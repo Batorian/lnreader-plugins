@@ -242,16 +242,20 @@ class NovelUpdates implements Plugin.PluginBase {
       case 'anotivereads':
         chapterTitle =
           loadedCheerio('#comic-nav-name').first().text() || 'Title not found';
-        chapterContent =
-          loadedCheerio('#spliced-comic').html() || 'Content not found';
+        chapterContent = loadedCheerio('#spliced-comic').html()!;
         chapterText = `<h2>${chapterTitle}</h2><hr><br>${chapterContent}`;
         break;
       case 'asuratls':
         const titleElement_asura = loadedCheerio('.post-body div b').first();
         chapterTitle = titleElement_asura.text() || 'Title not found';
         titleElement_asura.remove();
-        chapterContent =
-          loadedCheerio('.post-body').html() || 'Content not found';
+        chapterContent = loadedCheerio('.post-body').html()!;
+        chapterText = `<h2>${chapterTitle}</h2><hr><br>${chapterContent}`;
+        break;
+      case 'daoist':
+        chapterTitle =
+          loadedCheerio('.chapter__title').first().text() || 'Title not found';
+        chapterContent = loadedCheerio('.chapter__content').html()!;
         chapterText = `<h2>${chapterTitle}</h2><hr><br>${chapterContent}`;
         break;
       case 'fictionread':
@@ -273,8 +277,7 @@ class NovelUpdates implements Plugin.PluginBase {
               return false;
             }
           });
-        chapterContent =
-          loadedCheerio('.content').html() || 'Content not found';
+        chapterContent = loadedCheerio('.content').html()!;
         chapterText = `<h2>${chapterTitle}</h2><hr><br>${chapterContent}`;
         break;
       case 'genesistudio':
@@ -303,22 +306,19 @@ class NovelUpdates implements Plugin.PluginBase {
               return false;
             }
           });
-        chapterContent =
-          loadedCheerio('#readerarea.rdminimal').html() || 'Content not found';
+        chapterContent = loadedCheerio('#readerarea.rdminimal').html()!;
         chapterText = `<h2>${chapterTitle}</h2><hr><br>${chapterContent}`;
         break;
       case 'hiraethtranslation':
         chapterTitle =
           loadedCheerio('li.active').first().text() || 'Title not found';
-        chapterContent =
-          loadedCheerio('.text-left').html() || 'Content not found';
+        chapterContent = loadedCheerio('.text-left').html()!;
         chapterText = `<h2>${chapterTitle}</h2><hr><br>${chapterContent}`;
         break;
       case 'hostednovel':
         chapterTitle =
           loadedCheerio('#chapter-title').first().text() || 'Title not found';
-        chapterContent =
-          loadedCheerio('#chapter-content').html() || 'Content not found';
+        chapterContent = loadedCheerio('#chapter-content').html()!;
         chapterText = `<h2>${chapterTitle}</h2><hr><br>${chapterContent}`;
         break;
       case 'infinitenoveltranslations':
@@ -333,8 +333,7 @@ class NovelUpdates implements Plugin.PluginBase {
           const body_infinite = await result_infinite.text();
           loadedCheerio = parseHTML(body_infinite);
         }
-        chapterContent =
-          loadedCheerio('.cm-entry-summary').html() || 'Content not found';
+        chapterContent = loadedCheerio('.cm-entry-summary').html()!;
         chapterTitle =
           loadedCheerio('.cm-entry-title').text() || 'Title not found';
         chapterText = `<h2>${chapterTitle}</h2><hr><br>${chapterContent}`;
@@ -364,8 +363,7 @@ class NovelUpdates implements Plugin.PluginBase {
         bloatElements.forEach(tag => loadedCheerio(tag).remove());
         chapterTitle =
           loadedCheerio('head title').first().text() || 'Title not found';
-        chapterContent =
-          loadedCheerio('main article').html() || 'Content not found';
+        chapterContent = loadedCheerio('main article').html()!;
         chapterText = `<h2>${chapterTitle}</h2><hr><br>${chapterContent}`;
         break;
       case 'ko-fi':
@@ -388,8 +386,7 @@ class NovelUpdates implements Plugin.PluginBase {
         ).first();
         chapterTitle = titleElement_mirilu.text() || 'Title not found';
         titleElement_mirilu.remove();
-        chapterContent =
-          loadedCheerio('.entry-content').html() || 'Content not found';
+        chapterContent = loadedCheerio('.entry-content').html()!;
         chapterText = `<h2>${chapterTitle}</h2><hr><br>${chapterContent}`;
         break;
       case 'novelplex':
@@ -397,8 +394,7 @@ class NovelUpdates implements Plugin.PluginBase {
         bloatElements.forEach(tag => loadedCheerio(tag).remove());
         chapterTitle =
           loadedCheerio('.halChap--jud').first().text() || 'Title not found';
-        chapterContent =
-          loadedCheerio('.halChap--kontenInner ').html() || 'Content not found';
+        chapterContent = loadedCheerio('.halChap--kontenInner ').html()!;
         chapterText = `<h2>${chapterTitle}</h2><hr><br>${chapterContent}`;
         break;
       case 'novelworldtranslations':
@@ -418,9 +414,10 @@ class NovelUpdates implements Plugin.PluginBase {
           });
         chapterTitle =
           loadedCheerio('.entry-title').first().text() || 'Title not found';
-        chapterContent =
-          loadedCheerio('.entry-content').html() ||
-          'Content not found'.replace(/&nbsp;/g, '').replace(/\n/g, '<br>');
+        chapterContent = loadedCheerio('.entry-content')
+          .html()!
+          .replace(/&nbsp;/g, '')
+          .replace(/\n/g, '<br>');
         chapterText = `<h2>${chapterTitle}</h2><hr><br>${chapterContent}`;
         break;
       case 'raeitranslations':
@@ -451,15 +448,13 @@ class NovelUpdates implements Plugin.PluginBase {
           '.zoomdesc-cont p img',
           '.zoomdesc-cont p noscript',
         ];
-        bloatElements.map(tag => loadedCheerioSnow(tag).remove());
-        chapterContent =
-          loadedCheerioSnow('.zoomdesc-cont').html() || 'Content not found';
+        bloatElements.forEach(tag => loadedCheerioSnow(tag).remove());
+        chapterContent = loadedCheerioSnow('.zoomdesc-cont').html()!;
         const titleElement_snow = loadedCheerioSnow('.scroller h2').first();
         if (titleElement_snow.length) {
           chapterTitle = titleElement_snow.text() || 'Title not found';
           titleElement_snow.remove();
-          chapterContent =
-            loadedCheerioSnow('.zoomdesc-cont').html() || 'Content not found';
+          chapterContent = loadedCheerioSnow('.zoomdesc-cont').html()!;
           if (chapterTitle && chapterContent) {
             chapterText = `<h2>${chapterTitle}</h2><hr><br>${chapterContent}`;
           }
@@ -512,8 +507,7 @@ class NovelUpdates implements Plugin.PluginBase {
         bloatElements.forEach(tag => loadedCheerio(tag).remove());
         chapterTitle =
           loadedCheerio('.entry-title').first().text() || 'Title not found';
-        chapterContent =
-          loadedCheerio('.entry-content').html() || 'Content not found';
+        chapterContent = loadedCheerio('.entry-content').html()!;
         chapterText = `<h2>${chapterTitle}</h2><hr><br>${chapterContent}`;
         break;
       case 'scribblehub':
@@ -521,8 +515,7 @@ class NovelUpdates implements Plugin.PluginBase {
         bloatElements.forEach(tag => loadedCheerio(tag).remove());
         chapterTitle =
           loadedCheerio('.chapter-title').first().text() || 'Title not found';
-        chapterContent =
-          loadedCheerio('.chp_raw').html() || 'Content not found';
+        chapterContent = loadedCheerio('.chp_raw').html()!;
         chapterText = `<h2>${chapterTitle}</h2><hr><br>${chapterContent}`;
         break;
       case 'skydemonorder':
@@ -536,11 +529,11 @@ class NovelUpdates implements Plugin.PluginBase {
           throw new Error('Age verification required, please open in webview.');
         }
         chapterTitle = `${loadedCheerio('.pl-4 h1').first().text() || 'Title not found'} | ${loadedCheerio('.pl-4 div').first().text() || 'Title not found'}`;
-        chapterContent =
-          loadedCheerio('#startContainer + * > *').first().html() ||
-          'Content not found';
+        chapterContent = loadedCheerio('#startContainer + * > *')
+          .first()
+          .html()!;
         if (!chapterContent) {
-          chapterContent = `${loadedCheerio('#chapter-body').html() || 'Content not found'}<hr><br>There could be missing content, please check in webview.`;
+          chapterContent = `${loadedCheerio('#chapter-body').html()!}<hr><br>There could be missing content, please check in webview.`;
         }
         chapterText = `<h2>${chapterTitle}</h2><hr><br>${chapterContent}`;
         break;
@@ -561,14 +554,12 @@ class NovelUpdates implements Plugin.PluginBase {
           '#jp-post-flair',
         ];
         bloatElements.forEach(tag => loadedCheerio(tag).remove());
-        chapterContent =
-          loadedCheerio('.entry-content').html() || 'Content not found';
+        chapterContent = loadedCheerio('.entry-content').html()!;
         const titleElement_syringe = loadedCheerio('.entry-content h3').first();
         if (titleElement_syringe.length) {
           chapterTitle = titleElement_syringe.text();
           titleElement_syringe.remove();
-          chapterContent =
-            loadedCheerio('.entry-content').html() || 'Content not found';
+          chapterContent = loadedCheerio('.entry-content').html()!;
         } else {
           chapterTitle = 'Title not found';
         }
@@ -586,8 +577,7 @@ class NovelUpdates implements Plugin.PluginBase {
         chapterTitle =
           loadedCheerio('.title-content').first().text() || 'Title not found';
         loadedCheerio('.title-content').first().remove();
-        chapterContent =
-          loadedCheerio('.content').html() || 'Content not found';
+        chapterContent = loadedCheerio('.content').html()!;
         chapterText = `<h2>${chapterTitle}</h2><hr><br>${chapterContent}`;
         break;
       case 'tumblr':
@@ -595,19 +585,16 @@ class NovelUpdates implements Plugin.PluginBase {
         break;
       case 'wattpad':
         chapterTitle = loadedCheerio('.h2').first().text() || 'Title not found';
-        chapterContent =
-          loadedCheerio('.part-content pre').html() || 'Content not found';
+        chapterContent = loadedCheerio('.part-content pre').html()!;
         chapterText = `<h2>${chapterTitle}</h2><hr><br>${chapterContent}`;
         break;
       case 'webnovel':
         chapterTitle =
           loadedCheerio('.cha-tit .pr .dib').first().text() ||
           'Title not found';
-        chapterContent =
-          loadedCheerio('.cha-words').html() || 'Content not found';
+        chapterContent = loadedCheerio('.cha-words').html()!;
         if (!chapterContent) {
-          chapterContent =
-            loadedCheerio('._content').html() || 'Content not found';
+          chapterContent = loadedCheerio('._content').html()!;
         }
         chapterText = `<h2>${chapterTitle}</h2><hr><br>${chapterContent}`;
         break;
@@ -628,8 +615,7 @@ class NovelUpdates implements Plugin.PluginBase {
         bloatElements.forEach(tag => loadedCheerio(tag).remove());
         chapterTitle =
           loadedCheerio('h4 span').first().text() || 'Title not found';
-        chapterContent =
-          loadedCheerio('.chapter-content').html() || 'Content not found';
+        chapterContent = loadedCheerio('.chapter-content').html()!;
         chapterText = `<h2>${chapterTitle}</h2><hr><br>${chapterContent}`;
         break;
       case 'yoru':
@@ -641,14 +627,12 @@ class NovelUpdates implements Plugin.PluginBase {
       case 'zetrotranslation':
         bloatElements = ['hr', 'p:contains("\u00a0")'];
         bloatElements.forEach(tag => loadedCheerio(tag).remove());
-        chapterContent =
-          loadedCheerio('.text-left').html() || 'Content not found';
+        chapterContent = loadedCheerio('.text-left').html()!;
         const titleElement_zetro = loadedCheerio('.text-left h2').first();
         if (titleElement_zetro.length) {
           chapterTitle = titleElement_zetro.text() || 'Title not found';
           titleElement_zetro.remove();
-          chapterContent =
-            loadedCheerio('.text-left').html() || 'Content not found';
+          chapterContent = loadedCheerio('.text-left').html()!;
           chapterText = `<h2>${chapterTitle}</h2><hr><br>${chapterContent}`;
         } else if (chapterContent) {
           chapterTitle =
@@ -804,8 +788,7 @@ class NovelUpdates implements Plugin.PluginBase {
       chapterContent =
         loadedCheerio('.content-post').html() ||
         loadedCheerio('.entry-content').html() ||
-        loadedCheerio('.post-body').html() ||
-        'Content not found';
+        loadedCheerio('.post-body').html()!;
       if (chapterTitle && chapterContent) {
         chapterText = `<h2>${chapterTitle}</h2><hr><br>${chapterContent}`;
       }
@@ -864,8 +847,7 @@ class NovelUpdates implements Plugin.PluginBase {
         loadedCheerio('.page-body').html() ||
         loadedCheerio('.td-page-content').html() ||
         loadedCheerio('#content').html() ||
-        loadedCheerio('article.post').html() ||
-        'Content not found';
+        loadedCheerio('article.post').html()!;
       if (chapterTitle && chapterContent) {
         chapterText = `<h2>${chapterTitle}</h2><hr><br>${chapterContent}`;
       }
