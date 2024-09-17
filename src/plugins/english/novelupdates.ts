@@ -252,7 +252,12 @@ class NovelUpdates implements Plugin.PluginBase {
         const data_genesis = nodes_genesis
           .filter((node: { type: string }) => node.type === 'data')
           .map((node: { data: any }) => node.data)[0];
-        chapterText = data_genesis[data_genesis[0].content];
+
+        /** May change in the future */
+        const content_genesis = data_genesis[19];
+        const footnotes_genesis = data_genesis[data_genesis[0].footnotes];
+
+        chapterText = content_genesis + footnotes_genesis ?? '';
         break;
       case 'helscans':
         chapterTitle =
@@ -744,7 +749,6 @@ class NovelUpdates implements Plugin.PluginBase {
      * - ElloMTL
      * - Femme Fables
      * - Gem Novels
-     * - Genesis Translations (Manually added)
      * - Goblinslate
      * - Hel Scans (Outlier)
      * - ippotranslations
@@ -789,7 +793,6 @@ class NovelUpdates implements Plugin.PluginBase {
         '.chapter-warning',
         '.entry-meta',
         '.ezoic-ad',
-        '.genesistls-watermark',
         '.mb-center',
         '.modern-footnotes-footnote__note',
         '.patreon-widget',
