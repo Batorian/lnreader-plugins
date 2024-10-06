@@ -7,7 +7,7 @@ import Mercury from '@postlight/mercury-parser';
 class NovelUpdates implements Plugin.PluginBase {
   id = 'novelupdates';
   name = 'Novel Updates';
-  version = '0.8.2';
+  version = '0.8.3';
   icon = 'src/en/novelupdates/icon.png';
   customCSS = 'src/en/novelupdates/customCSS.css';
   site = 'https://www.novelupdates.com/';
@@ -191,25 +191,22 @@ class NovelUpdates implements Plugin.PluginBase {
     let chapterContent = '';
     let chapterText = '';
 
-    // Hier fetchst du das HTML des Kapitels
     const result = await fetchApi(this.site + chapterPath);
     const body = await result.text();
 
-    // Nutze Cheerio, um den HTML-Body zu manipulieren
     const loadedCheerio = parseHTML(body);
 
-    // Falls du den Body an Mercury übergeben willst:
-    const parsedContent = await Mercury.parse(result.url, {
-      html: loadedCheerio.html(), // Gebe den manipulierten HTML-Body weiter
+    const parsedContent = await Mercury.parse(this.site + chapterPath, {
+      html: loadedCheerio.html(),
     });
-
-    console.log('Parsed Content from Mercury:', parsedContent);
 
     chapterTitle = parsedContent.title?.trim() || '';
     chapterContent = parsedContent.content?.trim() || '';
 
     if (chapterTitle && chapterContent) {
       chapterText = `<h2>${chapterTitle.trim()}</h2><hr><br>${chapterContent.trim()}`;
+    } else {
+      chapterText = 'Error parsing chapter';
     }
 
     return chapterText;
