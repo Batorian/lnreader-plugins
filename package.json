@@ -1,6 +1,6 @@
 {
   "name": "lnreader-plugins",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Plugins repo for LNReader",
   "main": "index.js",
   "type": "module",
@@ -31,6 +31,7 @@
     "cheerio": "^1.0.0-rc.12",
     "dayjs": "^1.11.10",
     "htmlparser2": "^9.1.0",
+    "mercury-parser": "^1.0.0",
     "protobufjs": "^7.2.6",
     "qs": "^6.11.2",
     "react": "^18.2.0",
