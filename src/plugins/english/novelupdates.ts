@@ -2,12 +2,12 @@ import { CheerioAPI, load as parseHTML } from 'cheerio';
 import { fetchApi } from '@libs/fetch';
 import { Filters, FilterTypes } from '@libs/filterInputs';
 import { Plugin } from '@typings/plugin';
-import Mercury from '@postlight/mercury-parser';
+import { parse as parseMercury } from '@postlight/mercury-parser';
 
 class NovelUpdates implements Plugin.PluginBase {
   id = 'novelupdates';
   name = 'Novel Updates';
-  version = '0.8.3';
+  version = '0.8.4';
   icon = 'src/en/novelupdates/icon.png';
   customCSS = 'src/en/novelupdates/customCSS.css';
   site = 'https://www.novelupdates.com/';
@@ -186,22 +186,19 @@ class NovelUpdates implements Plugin.PluginBase {
   }
 
   async parseChapter(chapterPath: string): Promise<string> {
-    let bloatElements = [];
-    let chapterTitle = '';
-    let chapterContent = '';
-    let chapterText = '';
+    let chapterText: string;
 
     const result = await fetchApi(this.site + chapterPath);
     const body = await result.text();
 
     const loadedCheerio = parseHTML(body);
 
-    const parsedContent = await Mercury.parse(this.site + chapterPath, {
+    const parsedContent = await parseMercury(this.site + chapterPath, {
       html: loadedCheerio.html(),
     });
 
-    chapterTitle = parsedContent.title?.trim() || '';
-    chapterContent = parsedContent.content?.trim() || '';
+    const chapterTitle = parsedContent.title?.trim() || '';
+    const chapterContent = parsedContent.content?.trim() || '';
 
     if (chapterTitle && chapterContent) {
       chapterText = `<h2>${chapterTitle.trim()}</h2><hr><br>${chapterContent.trim()}`;
