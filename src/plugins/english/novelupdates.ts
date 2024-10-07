@@ -2,12 +2,12 @@ import { CheerioAPI, load as parseHTML } from 'cheerio';
 import { fetchApi } from '@libs/fetch';
 import { Filters, FilterTypes } from '@libs/filterInputs';
 import { Plugin } from '@typings/plugin';
-import { parse as parseMercury } from '@postlight/mercury-parser';
+import { Parser } from '@postlight/parser';
 
 class NovelUpdates implements Plugin.PluginBase {
   id = 'novelupdates';
   name = 'Novel Updates';
-  version = '0.8.6';
+  version = '0.8.7';
   icon = 'src/en/novelupdates/icon.png';
   customCSS = 'src/en/novelupdates/customCSS.css';
   site = 'https://www.novelupdates.com/';
@@ -191,14 +191,12 @@ class NovelUpdates implements Plugin.PluginBase {
     const result = await fetchApi(this.site + chapterPath);
 
     try {
-      const parsedContent = parseMercury(result.url, {
+      const parsedContent = await Parser.parse(result.url, {
         headers: result.headers,
       });
 
-      const chapterTitle =
-        parsedContent.then(result => result.title?.trim()) || '';
-      const chapterContent =
-        parsedContent.then(result => result.content?.trim()) || '';
+      const chapterTitle = parsedContent.title?.trim() || '';
+      const chapterContent = parsedContent.content?.trim() || '';
 
       if (chapterTitle && chapterContent) {
         chapterText = `${chapterTitle}${chapterContent}`;
