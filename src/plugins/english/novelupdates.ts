@@ -7,7 +7,7 @@ import { parse as parseMercury } from '@postlight/mercury-parser';
 class NovelUpdates implements Plugin.PluginBase {
   id = 'novelupdates';
   name = 'Novel Updates';
-  version = '0.8.5';
+  version = '0.8.6';
   icon = 'src/en/novelupdates/icon.png';
   customCSS = 'src/en/novelupdates/customCSS.css';
   site = 'https://www.novelupdates.com/';
@@ -191,15 +191,17 @@ class NovelUpdates implements Plugin.PluginBase {
     const result = await fetchApi(this.site + chapterPath);
 
     try {
-      const parsedContent = await parseMercury(result.url, {
+      const parsedContent = parseMercury(result.url, {
         headers: result.headers,
       });
 
-      const chapterTitle = parsedContent.title?.trim() || '';
-      const chapterContent = parsedContent.content?.trim() || '';
+      const chapterTitle =
+        parsedContent.then(result => result.title?.trim()) || '';
+      const chapterContent =
+        parsedContent.then(result => result.content?.trim()) || '';
 
       if (chapterTitle && chapterContent) {
-        chapterText = `<h2>${chapterTitle.trim()}</h2><hr><br>${chapterContent.trim()}`;
+        chapterText = `${chapterTitle}${chapterContent}`;
       } else {
         chapterText = 'Error parsing chapter';
       }
