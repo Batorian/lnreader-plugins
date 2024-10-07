@@ -7,7 +7,7 @@ import { parse as MercuryParse } from '@postlight/mercury-parser';
 class NovelUpdates implements Plugin.PluginBase {
   id = 'novelupdates';
   name = 'Novel Updates';
-  version = '0.8.9';
+  version = '0.8.10';
   icon = 'src/en/novelupdates/icon.png';
   customCSS = 'src/en/novelupdates/customCSS.css';
   site = 'https://www.novelupdates.com/';
@@ -204,7 +204,9 @@ class NovelUpdates implements Plugin.PluginBase {
         chapterText = 'Error parsing chapter';
       }
     } catch (e) {
-      throw new Error(`Error: ${e}`);
+      throw new Error(
+        `Error: ${e}\nurl: ${result.url}\nheaders: ${result.headers}`,
+      );
     }
 
     return chapterText;
