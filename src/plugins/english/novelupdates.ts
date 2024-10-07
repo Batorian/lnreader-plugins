@@ -7,7 +7,7 @@ import { parse as parseMercury } from '@postlight/mercury-parser';
 class NovelUpdates implements Plugin.PluginBase {
   id = 'novelupdates';
   name = 'Novel Updates';
-  version = '0.8.4';
+  version = '0.8.5';
   icon = 'src/en/novelupdates/icon.png';
   customCSS = 'src/en/novelupdates/customCSS.css';
   site = 'https://www.novelupdates.com/';
@@ -189,21 +189,22 @@ class NovelUpdates implements Plugin.PluginBase {
     let chapterText: string;
 
     const result = await fetchApi(this.site + chapterPath);
-    const body = await result.text();
 
-    const loadedCheerio = parseHTML(body);
+    try {
+      const parsedContent = await parseMercury(result.url, {
+        headers: result.headers,
+      });
 
-    const parsedContent = await parseMercury(this.site + chapterPath, {
-      html: loadedCheerio.html(),
-    });
+      const chapterTitle = parsedContent.title?.trim() || '';
+      const chapterContent = parsedContent.content?.trim() || '';
 
-    const chapterTitle = parsedContent.title?.trim() || '';
-    const chapterContent = parsedContent.content?.trim() || '';
-
-    if (chapterTitle && chapterContent) {
-      chapterText = `<h2>${chapterTitle.trim()}</h2><hr><br>${chapterContent.trim()}`;
-    } else {
-      chapterText = 'Error parsing chapter';
+      if (chapterTitle && chapterContent) {
+        chapterText = `<h2>${chapterTitle.trim()}</h2><hr><br>${chapterContent.trim()}`;
+      } else {
+        chapterText = 'Error parsing chapter';
+      }
+    } catch (e) {
+      throw new Error(`Error: ${e}`);
     }
 
     return chapterText;
