@@ -7,7 +7,7 @@ import { parse as MercuryParse } from '@postlight/mercury-parser';
 class NovelUpdates implements Plugin.PluginBase {
   id = 'novelupdates';
   name = 'Novel Updates';
-  version = '0.8.10';
+  version = '0.8.11';
   icon = 'src/en/novelupdates/icon.png';
   customCSS = 'src/en/novelupdates/customCSS.css';
   site = 'https://www.novelupdates.com/';
@@ -191,9 +191,12 @@ class NovelUpdates implements Plugin.PluginBase {
     const result = await fetchApi(this.site + chapterPath);
 
     try {
-      const parsedContent = await MercuryParse(result.url, {
-        headers: result.headers,
-      });
+      /**
+       * const parsedContent = await MercuryParse(result.url, {
+       *         headers: result.headers,
+       *       });
+       */
+      const parsedContent = await MercuryParse(result.url);
 
       const chapterTitle = parsedContent.title?.trim() || '';
       const chapterContent = parsedContent.content?.trim() || '';
