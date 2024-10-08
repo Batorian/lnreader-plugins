@@ -1,4 +1,4 @@
-declare module '@postlight/mercury-parser' {
+declare module '@postlight/parser' {
   export interface ParseResult {
     title: string | null;
     content: string | null;

@@ -27,7 +27,7 @@
     "@fontsource/roboto": "^5.0.13",
     "@mui/icons-material": "^5.15.20",
     "@mui/material": "^5.15.20",
-    "@postlight/mercury-parser": "^2.2.1",
+    "@postlight/parser": "^2.2.3",
     "@reduxjs/toolkit": "^2.2.5",
     "cheerio": "^1.0.0-rc.12",
     "dayjs": "^1.11.10",
