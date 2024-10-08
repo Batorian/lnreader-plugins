@@ -7,7 +7,7 @@ import { parse as PostlightParse } from '@postlight/parser';
 class NovelUpdates implements Plugin.PluginBase {
   id = 'novelupdates';
   name = 'Novel Updates';
-  version = '0.8.5';
+  version = '0.8.1';
   icon = 'src/en/novelupdates/icon.png';
   customCSS = 'src/en/novelupdates/customCSS.css';
   site = 'https://www.novelupdates.com/';
@@ -186,29 +186,30 @@ class NovelUpdates implements Plugin.PluginBase {
   }
 
   async parseChapter(chapterPath: string): Promise<string> {
-    let chapterText: string;
-
-    const result = await fetchApi(this.site + chapterPath);
+    const url = this.site + chapterPath;
+    const result = await fetchApi(url);
     const body = await result.text();
 
+    const loadedCheerio = parseHTML(body);
+
+    let chapterText: string;
+
     try {
-      const parsedContent = await PostlightParse(this.site + chapterPath, {
-        html: body,
-        //headers: result.headers,
+      const parsedContent = await PostlightParse(url, {
+        html: loadedCheerio.html(),
       });
 
       const chapterTitle = parsedContent.title?.trim() || '';
+      const wordCount = parsedContent.word_count;
       const chapterContent = parsedContent.content?.trim() || '';
 
       if (chapterTitle && chapterContent) {
-        chapterText = `${chapterTitle}${chapterContent}`;
+        chapterText = `<h3>${chapterTitle}</h3><p>${wordCount} Words</p><br>${chapterContent}`;
       } else {
-        chapterText = 'Error parsing chapter';
+        throw new Error('Chapter content is empty.');
       }
     } catch (e) {
-      throw new Error(
-        `Error: ${e}\nurl: ${result.url}\nheaders: ${result.headers}`,
-      );
+      throw new Error(`Error: ${e}`);
     }
 
     return chapterText;
