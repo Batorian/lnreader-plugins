@@ -29,7 +29,6 @@
     "@mui/material": "^5.15.20",
     "@postlight/mercury-parser": "^2.2.1",
     "@reduxjs/toolkit": "^2.2.5",
-    "@types/postlight__mercury-parser": "^2.2.7",
     "cheerio": "^1.0.0-rc.12",
     "dayjs": "^1.11.10",
     "htmlparser2": "^9.1.0",
