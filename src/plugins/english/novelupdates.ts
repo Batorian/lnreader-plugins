@@ -7,7 +7,7 @@ import { parse as PostlightParse } from '@postlight/parser';
 class NovelUpdates implements Plugin.PluginBase {
   id = 'novelupdates';
   name = 'Novel Updates';
-  version = '0.8.3';
+  version = '0.8.4';
   icon = 'src/en/novelupdates/icon.png';
   customCSS = 'src/en/novelupdates/customCSS.css';
   site = 'https://www.novelupdates.com/';
@@ -189,10 +189,12 @@ class NovelUpdates implements Plugin.PluginBase {
     let chapterText: string;
 
     const result = await fetchApi(this.site + chapterPath);
+    const body = await result.text();
 
     try {
-      const parsedContent = await PostlightParse(result.url, {
-        headers: result.headers,
+      const parsedContent = await PostlightParse(this.site + chapterPath, {
+        html: body,
+        //headers: result.headers,
       });
 
       const chapterTitle = parsedContent.title?.trim() || '';
