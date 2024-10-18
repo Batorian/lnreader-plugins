@@ -408,14 +408,14 @@ class NovelUpdates implements Plugin.PluginBase {
         break;
       case 'raeitranslations':
         const parts = url.split('/');
-        const link_raei = `${parts[0]}//api.${parts[2]}/api/chapters/?id=${parts[3]}&num=${parts[4]}`;
+        const link_raei = `${parts[0]}//api.${parts[2]}/api/chapters/single?id=${parts[3]}&num=${parts[4]}`;
         const json_raei = await fetchApi(link_raei).then(r => r.json());
         const titleElement_raei = `Chapter ${json_raei.currentChapter.chapTag}`;
         chapterTitle = json_raei.currentChapter.chapTitle
           ? `${titleElement_raei} - ${json_raei.currentChapter.chapTitle}`
           : titleElement_raei;
         chapterContent = [
-          json_raei.currentChapter.head,
+          json_raei.novelHead,
           `<br><hr><br>`,
           json_raei.currentChapter.body,
           `<br><hr><br>Translator's Note:<br>`,
