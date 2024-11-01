@@ -68,12 +68,12 @@
   },
   {
     "id": "arnovel",
-    "sourceSite": "https://ar-novel.com/",
+    "sourceSite": "https://ar-no.com/",
     "sourceName": "ArNovel",
     "options": {
       "useNewChapterEndpoint": true,
       "lang": "Arabic",
-      "versionIncrements": 1
+      "versionIncrements": 2
     }
   },
   {
@@ -136,12 +136,12 @@
   },
   {
     "id": "riwyat",
-    "sourceSite": "https://riwyatspace.com/",
+    "sourceSite": "https://cenele.com/",
     "sourceName": "Riwyat",
     "options": {
       "useNewChapterEndpoint": true,
       "lang": "Arabic",
-      "versionIncrements": 3
+      "versionIncrements": 4
     }
   },
   {
@@ -252,8 +252,8 @@
     "sourceSite": "https://srankmanga.com/",
     "sourceName": "Srank Manga",
     "options": {
-        "useNewChapterEndpoint": true,
-        "versionIncrements": 1
+      "useNewChapterEndpoint": true,
+      "versionIncrements": 1
     }
   },
   {
@@ -376,6 +376,61 @@
     "id": "citrusaurora",
     "sourceSite": "https://citrusaurora.com/",
     "sourceName": "Citrus Aurora",
+    "options": {
+      "versionIncrements": 1,
+      "useNewChapterEndpoint": true,
+      "lang": "English"
+    }
+  },
+  {
+    "id": "duskblossoms",
+    "sourceSite": "https://duskblossoms.com/",
+    "sourceName": "Dusk Blossoms",
+    "options": {
+      "useNewChapterEndpoint": true,
+      "lang": "English"
+    }
+  },
+  {
+    "id": "fenrir",
+    "sourceSite": "https://fenrirtranslations.com/",
+    "sourceName": "Fenrir Translations",
+    "options": {
+      "useNewChapterEndpoint": true,
+      "lang": "English"
+    }
+  },
+  {
+    "id": "bellereservoir",
+    "sourceSite": "https://bellereservoir.com/",
+    "sourceName": "Belle Reservoir",
+    "options": {
+      "useNewChapterEndpoint": true,
+      "lang": "English"
+    }
+  },
+  {
+    "id": "traducciones",
+    "sourceSite": "https://traduccionesamistosas.eyudud.net/",
+    "sourceName": "Traducciones Amistosas",
+    "options": {
+      "useNewChapterEndpoint": true,
+      "lang": "Spanish"
+    }
+  },
+  {
+    "id": "coralboutique",
+    "sourceSite": "https://coralboutique.xyz/",
+    "sourceName": "Coral Boutique",
+    "options": {
+      "useNewChapterEndpoint": true,
+      "lang": "English"
+    }
+  },
+  {
+    "id": "pasteltales",
+    "sourceSite": "https://pasteltales.com/",
+    "sourceName": "Pastel Tales",
     "options": {
       "useNewChapterEndpoint": true,
       "lang": "English"
