@@ -311,17 +311,17 @@ class NovelUpdates implements Plugin.PluginBase {
         /**
          * Get the chapter link from the main page
          */
-        const link_infinite = loadedCheerio('.cm-entry-summary > p > a').attr(
-          'href',
-        )!;
+        const link_infinite = loadedCheerio('article > p > a')
+          .first()
+          .attr('href')!;
         if (link_infinite) {
           const result_infinite = await fetchApi(link_infinite);
           const body_infinite = await result_infinite.text();
           loadedCheerio = parseHTML(body_infinite);
         }
-        chapterContent = loadedCheerio('.cm-entry-summary').html()!;
+        chapterContent = loadedCheerio('.hentry').html()!;
         chapterTitle =
-          loadedCheerio('.cm-entry-title').text() || 'Title not found';
+          loadedCheerio('.page-entry-title').text() || 'Title not found';
         chapterText = `<h2>${chapterTitle}</h2><hr><br>${chapterContent}`;
         break;
       case 'inoveltranslation':
@@ -506,7 +506,7 @@ class NovelUpdates implements Plugin.PluginBase {
         if (ageVerification_skydemon.includes('age verification required')) {
           throw new Error('Age verification required, please open in webview.');
         }
-        chapterTitle = `${loadedCheerio('.pl-4 h1').first().text() || 'Title not found'} | ${loadedCheerio('.pl-4 div').first().text() || 'Title not found'}`;
+        chapterTitle = `${loadedCheerio('header h2').first().text().trim() || 'Title not found'} | ${loadedCheerio('header h3').first().text().trim() || 'Title not found'}`;
         chapterContent = loadedCheerio('#startContainer + * > *')
           .first()
           .html()!;
@@ -837,6 +837,7 @@ class NovelUpdates implements Plugin.PluginBase {
         loadedCheerio('.td-page-content').html() ||
         loadedCheerio('.reader-content').html() ||
         loadedCheerio('#content').html() ||
+        loadedCheerio('#the-content').html() ||
         loadedCheerio('article.post').html()!;
       if (chapterTitle && chapterContent) {
         chapterText = `<h2>${chapterTitle}</h2><hr><br>${chapterContent}`;
