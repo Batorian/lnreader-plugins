@@ -222,6 +222,27 @@ class NovelUpdates implements Plugin.PluginBase {
         chapterContent = loadedCheerio('.chapter__content').html()!;
         chapterText = `<h2>${chapterTitle}</h2><hr><br>${chapterContent}`;
         break;
+      // Last edited in 0.7.12 - 08/12/2024
+      case 'darkstartranslations':
+        chapterTitle =
+          loadedCheerio('ol.breadcrumb li').last().text().trim() ||
+          'Title not found';
+        chapterContent = loadedCheerio('.text-left').html()!;
+
+        // Load the extracted chapter content into Cheerio
+        const chapterCheerio_darkstar = parseHTML(chapterContent);
+
+        // Add an empty row (extra <br>) after each <br> element
+        chapterCheerio_darkstar('br').each((_, el) => {
+          chapterCheerio_darkstar(el).after('<br>'); // Add one more <br> for an empty row
+        });
+
+        // Get the updated content
+        chapterContent = chapterCheerio_darkstar.html();
+
+        // Combine the title and the updated content into the final chapter text
+        chapterText = `<h2>${chapterTitle}</h2><hr><br>${chapterContent}`;
+        break;
       case 'fictionread':
         bloatElements = [
           '.content > style',
@@ -375,9 +396,11 @@ class NovelUpdates implements Plugin.PluginBase {
         chapterContent = loadedCheerio('.halChap--kontenInner ').html()!;
         chapterText = `<h2>${chapterTitle}</h2><hr><br>${chapterContent}`;
         break;
+      // Last edited in 0.7.12 - 08/12/2024
       case 'novelworldtranslations':
         bloatElements = ['.separator img'];
         bloatElements.forEach(tag => loadedCheerio(tag).remove());
+
         loadedCheerio('.entry-content a')
           .filter((_, el) => {
             return (
@@ -390,12 +413,23 @@ class NovelUpdates implements Plugin.PluginBase {
           .each((_, el) => {
             loadedCheerio(el).parent().remove();
           });
+
         chapterTitle =
           loadedCheerio('.entry-title').first().text() || 'Title not found';
         chapterContent = loadedCheerio('.entry-content')
           .html()!
           .replace(/&nbsp;/g, '')
           .replace(/\n/g, '<br>');
+
+        // Load the chapter content into Cheerio and clean up empty elements
+        const chapterCheerio_novelworld = parseHTML(chapterContent);
+        chapterCheerio_novelworld('span, p, div').each((_, el) => {
+          if (chapterCheerio_novelworld(el).text().trim() === '') {
+            chapterCheerio_novelworld(el).remove();
+          }
+        });
+        chapterContent = chapterCheerio_novelworld.html()!;
+
         chapterText = `<h2>${chapterTitle}</h2><hr><br>${chapterContent}`;
         break;
       case 'raeitranslations':
@@ -709,6 +743,7 @@ class NovelUpdates implements Plugin.PluginBase {
     const outliers = [
       'anotivereads',
       'asuratls',
+      'darkstartranslations',
       'fictionread',
       'helscans',
       'infinitenoveltranslations',
@@ -737,6 +772,7 @@ class NovelUpdates implements Plugin.PluginBase {
      * - Anomlaously Creative (Outlier)
      * - Arcane Translations
      * - Blossom Translation
+     * - Darkstar Translations (Outlier)
      * - Dumahs Translations
      * - ElloMTL
      * - Femme Fables
@@ -862,6 +898,37 @@ class NovelUpdates implements Plugin.PluginBase {
         `href="${this.getLocation(result.url)}/`,
       );
     }
+
+    // Parse the HTML with Cheerio
+    const chapterCheerio = parseHTML(chapterText);
+
+    // Remove unwanted elements
+    chapterCheerio('noscript').remove();
+
+    // Process the images
+    chapterCheerio('img').each((i, el) => {
+      const $el = chapterCheerio(el);
+
+      // Prioritize data-lazy-src or src for the main src attribute
+      const imgSrc = $el.attr('data-lazy-src') || $el.attr('src');
+
+      if (imgSrc) {
+        $el.attr('src', imgSrc); // Set the src value
+      }
+
+      // Prioritize data-lazy-srcset or srcset for the srcset attribute
+      const imgSrcset = $el.attr('data-lazy-srcset') || $el.attr('srcset');
+
+      if (imgSrcset) {
+        $el.attr('srcset', imgSrcset); // Set the srcset value
+      }
+
+      // Remove lazy-loading classes
+      $el.removeClass('lazyloaded');
+    });
+
+    // Extract the updated HTML
+    chapterText = chapterCheerio.html();
 
     return chapterText;
   }
