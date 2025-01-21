@@ -14,10 +14,12 @@ class NovelUpdates implements Plugin.PluginBase {
   parseNovels(loadedCheerio: CheerioAPI) {
     const novels: Plugin.NovelItem[] = [];
 
-    loadedCheerio('div.search_main_box_nu').each((_, el) => {
-      const novelCover = loadedCheerio(el).find('img').attr('src');
-      const novelName = loadedCheerio(el).find('.search_title > a').text();
-      const novelUrl = loadedCheerio(el).find('.search_title > a').attr('href');
+    loadedCheerio('div.search_main_box_nu').each((idx, ele) => {
+      const novelCover = loadedCheerio(ele).find('img').attr('src');
+      const novelName = loadedCheerio(ele).find('.search_title > a').text();
+      const novelUrl = loadedCheerio(ele)
+        .find('.search_title > a')
+        .attr('href');
 
       if (!novelUrl) return;
 
@@ -112,18 +114,18 @@ class NovelUpdates implements Plugin.PluginBase {
     const novel: Plugin.SourceNovel = {
       path: novelPath,
       name: loadedCheerio('.seriestitlenu').text() || 'Untitled',
-      cover: loadedCheerio('.wpb_wrapper img').attr('src') || '',
+      cover: loadedCheerio('.wpb_wrapper img').attr('src'),
       chapters: [],
     };
 
     novel.author = loadedCheerio('#authtag')
-      .map((_, el) => loadedCheerio(el).text().trim())
+      .map((i, el) => loadedCheerio(el).text().trim())
       .toArray()
       .join(', ');
 
     novel.genres = loadedCheerio('#seriesgenre')
       .children('a')
-      .map((_, el) => loadedCheerio(el).text())
+      .map((i, el) => loadedCheerio(el).text())
       .toArray()
       .join(',');
 
