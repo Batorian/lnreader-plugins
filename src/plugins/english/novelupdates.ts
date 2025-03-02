@@ -2,14 +2,68 @@ import { CheerioAPI, load as parseHTML } from 'cheerio';
 import { fetchApi } from '@libs/fetch';
 import { Filters, FilterTypes } from '@libs/filterInputs';
 import { Plugin } from '@typings/plugin';
+//import { storage } from '@libs/storage';
 
 class NovelUpdates implements Plugin.PluginBase {
   id = 'novelupdates';
   name = 'Novel Updates';
-  version = '0.7.15';
+  version = '0.8.0';
   icon = 'src/en/novelupdates/icon.png';
   customCSS = 'src/en/novelupdates/customCSS.css';
   site = 'https://www.novelupdates.com/';
+
+  username = 'Batorian'; //storage.get('username');
+  password = '8n4kJxFk$xr9'; //storage.get('password');
+
+  async login(): Promise<boolean> {
+    const formData = new FormData();
+    formData.append('log', this.username);
+    formData.append('pwd', this.password);
+    formData.append('rememberme', 'forever');
+    formData.append('wp-submit', 'Log In');
+    console.log('formData:', formData);
+
+    try {
+      const response = await fetchApi(`${this.site}login/`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      console.log('Login response:', response);
+      return response.status === 302;
+    } catch (error) {
+      console.error('Login failed:', error);
+      return false;
+    }
+  }
+
+  async makeAuthenticatedRequest(url: string): Promise<Response> {
+    const response = await fetchApi(url);
+    console.log('Fetching: ' + url);
+
+    // Check if logged in by looking for the WordPress login cookie in the response headers
+    const isLoggedIn =
+      response.headers.get('set-cookie')?.includes('wordpress_logged_in') ||
+      document.cookie.includes('wordpress_logged_in');
+    console.log('Is logged in: ' + isLoggedIn);
+
+    if (!isLoggedIn) {
+      console.log('Not logged in, attempting to login');
+      if (this.username && this.password) {
+        console.log('Username and password provided');
+        const loginSuccess = await this.login();
+        console.log('Login success: ' + loginSuccess);
+        if (loginSuccess) {
+          // Retry the request after successful login
+          console.log('Retrying request after login');
+          return fetchApi(url);
+        }
+      }
+    }
+
+    console.log('Returning response');
+    return response;
+  }
 
   parseNovels(loadedCheerio: CheerioAPI) {
     const novels: Plugin.NovelItem[] = [];
@@ -111,7 +165,7 @@ class NovelUpdates implements Plugin.PluginBase {
 
   async parseNovel(novelPath: string): Promise<Plugin.SourceNovel> {
     const url = this.site + novelPath;
-    const result = await fetchApi(url);
+    const result = await this.makeAuthenticatedRequest(url);
     const body = await result.text();
 
     let loadedCheerio = parseHTML(body);
@@ -1147,6 +1201,18 @@ class NovelUpdates implements Plugin.PluginBase {
       type: FilterTypes.CheckboxGroup,
     },
   } satisfies Filters;
+
+  // pluginSettings = {
+  //   username: {
+  //     value: '',
+  //     label: 'Username',
+  //     type: 'Text',
+  //   },
+  //   password: {
+  //     value: '',
+  //     label: 'Password',
+  //   },
+  // };
 }
 
 export default new NovelUpdates();
