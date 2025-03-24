@@ -2,14 +2,17 @@ import { CheerioAPI, load as parseHTML } from 'cheerio';
 import { fetchApi } from '@libs/fetch';
 import { Filters, FilterTypes } from '@libs/filterInputs';
 import { Plugin } from '@typings/plugin';
+import { storage } from '@libs/storage';
 
 class NovelUpdates implements Plugin.PluginBase {
   id = 'novelupdates';
   name = 'Novel Updates';
-  version = '1.9.0';
+  version = '1.10.0';
   icon = 'src/en/novelupdates/icon.png';
   customCSS = 'src/en/novelupdates/customCSS.css';
   site = 'https://www.novelupdates.com/';
+
+  syncChapter = storage.get('syncChapter');
 
   parseNovels(loadedCheerio: CheerioAPI) {
     const novels: Plugin.NovelItem[] = [];
@@ -899,33 +902,31 @@ class NovelUpdates implements Plugin.PluginBase {
     return chapterCheerio.html()!;
   }
 
-  async trackProgress(novelPath: string, chapterPath: string): Promise<void> {
-    const url = this.site + novelPath;
-    const result = await fetchApi(url);
-    const body = await result.text();
+  async syncChapterStatus(
+    novelPath: string,
+    chapterPath: string,
+  ): Promise<boolean> {
+    try {
+      // Get HTML content
+      const result = await fetchApi(this.site + novelPath);
+      const body = await result.text();
+      const loadedCheerio = parseHTML(body);
 
-    let loadedCheerio = parseHTML(body);
+      // Extract IDs
+      const shortlink = loadedCheerio('link[rel="shortlink"]').attr('href');
+      const novelId = shortlink?.match(/\?p=(\d+)/)?.[1];
+      const chapterId = chapterPath.match(/\/(\d+)\//)?.[1];
 
-    // Extract shortlink and update path if available
-    const shortlink = loadedCheerio('link[rel="shortlink"]').attr('href');
-    const updatedNovelPath = shortlink?.replace(this.site, '');
+      // Validation
+      if (!novelId || !chapterId) return false;
 
-    // Extract the novelId from the novelPath
-    const novelIdMatch = updatedNovelPath?.match(/\?p=(\d+)/);
-    const novelId = novelIdMatch ? novelIdMatch[1] : null;
+      // Chapter sync
+      const syncUrl = `${this.site}readinglist_update.php?rid=${chapterId}&sid=${novelId}&checked=yes`;
+      await fetchApi(syncUrl);
 
-    // Extract the chapterId from the chapterPath
-    const chapterIdMatch = chapterPath.match(/\/(\d+)\//);
-    const chapterId = chapterIdMatch ? chapterIdMatch[1] : null;
-
-    if (novelId && chapterId) {
-      await fetchApi(
-        `${this.site}readinglist_update.php?rid=${chapterId}&sid=${novelId}&checked=yes`,
-      );
-    } else {
-      throw new Error(
-        `Invalid novelPath (${novelPath}) or chapterPath (${chapterPath}).`,
-      );
+      return true;
+    } catch (error) {
+      return false;
     }
   }
 
@@ -1084,6 +1085,14 @@ class NovelUpdates implements Plugin.PluginBase {
       type: FilterTypes.CheckboxGroup,
     },
   } satisfies Filters;
+
+  pluginSettings = {
+    syncChapter: {
+      value: '',
+      label: 'Sync chapter progress with plugin site',
+      type: 'Switch',
+    },
+  };
 }
 
 export default new NovelUpdates();
