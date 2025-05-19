@@ -6,7 +6,7 @@ import { Plugin } from '@typings/plugin';
 class NovelUpdates implements Plugin.PluginBase {
   id = 'novelupdates';
   name = 'Novel Updates';
-  version = '0.9.0';
+  version = '0.9.1';
   icon = 'src/en/novelupdates/icon.png';
   customCSS = 'src/en/novelupdates/customCSS.css';
   site = 'https://www.novelupdates.com/';
@@ -223,18 +223,15 @@ class NovelUpdates implements Plugin.PluginBase {
         chapterContent = loadedCheerio('.chapter__content').html()!;
         break;
       }
-      // Last edited in 0.9.0 by Batorian - 19/03/2025
+      // Last edited in 0.9.1 by Batorian - 19/05/2025
       case 'darkstartranslations': {
-        chapterTitle = loadedCheerio('ol.breadcrumb li').last().text().trim();
-        chapterContent = loadedCheerio('.text-left').html()!;
-        // Load the extracted chapter content into Cheerio
-        const chapterCheerio = parseHTML(chapterContent);
-        // Add an empty row (extra <br>) after each <br> element
-        chapterCheerio('br').each((_, el) => {
-          chapterCheerio(el).after('<br>'); // Add one more <br> for an empty row
-        });
-        // Get the updated content
-        chapterContent = chapterCheerio.html();
+        try {
+          const jsonDataString = loadedCheerio('#app').attr('data-page');
+          const jsonData = JSON.parse(jsonDataString!);
+          chapterContent = jsonData.props.chapter.content;
+        } catch (error) {
+          throw new Error(`Failed to fetch chapter data: ${error}`);
+        }
         break;
       }
       // Last edited in 0.9.0 by Batorian - 19/03/2025
