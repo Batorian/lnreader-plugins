@@ -673,65 +673,6 @@ class NovelUpdates implements Plugin.PluginBase {
         }
         break;
       }
-      // Last edited in 0.10.0 by Batorian - 08/07/2025
-      case 'stellarrealm': {
-        // Modular extraction inspired by W2e
-        const extractStellarRealmContent = (cheerioInstance: CheerioAPI) => {
-          // Remove ad-related bloat elements
-          const bloatElements = ['.ad-container', 'script', 'style'];
-          bloatElements.forEach(tag => cheerioInstance(tag).remove());
-
-          // Extract the data-page attribute from <div id="app">
-          const dataPage = cheerioInstance('#app').attr('data-page');
-          if (!dataPage) {
-            throw new Error('data-page attribute not found on Stellar Realm.');
-          }
-
-          // Parse the JSON from data-page
-          let pageData;
-          try {
-            pageData = JSON.parse(dataPage) as {
-              component: string;
-              props: {
-                chapter: {
-                  id: number;
-                  title: string;
-                  content: string;
-                };
-              };
-            };
-          } catch (e) {
-            throw new Error(
-              'Failed to parse data-page JSON for Stellar Realm.',
-            );
-          }
-
-          let chapterTitle = pageData.props.chapter.title;
-          let chapterContent = pageData.props.chapter.content;
-
-          // Clean up content (remove inline styles/scripts if needed)
-          const chapterCheerio = parseHTML(chapterContent);
-          chapterCheerio('script, style').remove();
-          chapterContent = chapterCheerio.html()!;
-
-          // Return formatted HTML
-          return `<h2>${chapterTitle}</h2><hr><br>${chapterContent}`;
-        };
-
-        try {
-          chapterText = extractStellarRealmContent(loadedCheerio);
-        } catch (err) {
-          // Fallback: try to extract whatever is in #app or body
-          let fallbackContent =
-            loadedCheerio('#app').html() || loadedCheerio('body').html() || '';
-          // Remove scripts/styles
-          const fallbackCheerio = parseHTML(fallbackContent);
-          fallbackCheerio('script, style').remove();
-          fallbackContent = fallbackCheerio.html()!;
-          chapterText = fallbackContent || 'Unable to extract chapter content.';
-        }
-        break;
-      }
       // Last edited in 0.9.0 by Batorian - 19/03/2025
       case 'tinytranslation': {
         bloatElements = [
@@ -894,6 +835,7 @@ class NovelUpdates implements Plugin.PluginBase {
       'asuratls',
       'fictionread',
       'helscans',
+      'hiraethtranslation',
       'infinitenoveltranslations',
       'machineslicedbread',
       'mirilu',
@@ -931,7 +873,7 @@ class NovelUpdates implements Plugin.PluginBase {
      * - Gem Novels
      * - Goblinslate
      * - Hel Scans (Outlier)
-     * - Hiraeth Translation
+     * - Hiraeth Translation (Outlier)
      * - ippotranslations
      * - JATranslations
      * - Light Novels Translations
