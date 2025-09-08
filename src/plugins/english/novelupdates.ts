@@ -378,7 +378,7 @@ class NovelUpdates implements Plugin.PluginBase {
             '.sidebar',
             '.swg-button-v2-light',
             '.wp-block-buttons',
-            '.wp-block-columns',
+            //'.wp-block-columns',
             '.wp-dark-mode-switcher',
             '.wp-next-post-navi',
             '#hpk',
