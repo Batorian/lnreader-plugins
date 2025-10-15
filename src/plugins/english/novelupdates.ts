@@ -7,7 +7,7 @@ import { storage } from '@libs/storage';
 class NovelUpdates implements Plugin.PluginBase {
   id = 'novelupdates';
   name = 'Novel Updates';
-  version = '1.9.3';
+  version = '0.9.3';
   icon = 'src/en/novelupdates/icon.png';
   customCSS = 'src/en/novelupdates/customCSS.css';
   site = 'https://www.novelupdates.com/';
@@ -313,8 +313,22 @@ class NovelUpdates implements Plugin.PluginBase {
         }
       }
       // Last edited in 0.9.3 by Batorian - 09/09/2025
+      // Last edited in 0.9.3 by Batorian - 09/09/2025
       case 'daoist': {
         chapterTitle = loadedCheerio('.chapter__title').first().text();
+
+        // Remove locked content indicators
+        loadedCheerio('span.patreon-lock-icon').remove();
+
+        // Handle lazy-loaded images
+        loadedCheerio('img[data-src]').each((_, el) => {
+          const $el = loadedCheerio(el);
+          const dataSrc = $el.attr('data-src');
+          if (dataSrc) {
+            $el.attr('src', dataSrc);
+            $el.removeAttr('data-src');
+          }
+        });
 
         // Remove locked content indicators
         loadedCheerio('span.patreon-lock-icon').remove();
