@@ -6,7 +6,7 @@ import { Plugin } from '@/types/plugin';
 class NovelUpdates implements Plugin.PluginBase {
   id = 'novelupdates';
   name = 'Novel Updates';
-  version = '0.9.11';
+  version = '0.9.12';
   icon = 'src/en/novelupdates/icon.png';
   customCSS = 'src/en/novelupdates/customCSS.css';
   site = 'https://www.novelupdates.com/';
@@ -399,7 +399,8 @@ class NovelUpdates implements Plugin.PluginBase {
             })
             .get();
 
-          chapterContent = paragraphs.filter(Boolean).join('<br>');
+          chapterContent =
+            paragraphs.filter(Boolean).join('<br>') + 'It works!';
         } catch (error) {
           throw new Error(`Failed to parse GreenzTL chapter: ${error}`);
         }
