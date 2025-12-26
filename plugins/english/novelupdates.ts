@@ -6,7 +6,7 @@ import { Plugin } from '@/types/plugin';
 class NovelUpdates implements Plugin.PluginBase {
   id = 'novelupdates';
   name = 'Novel Updates';
-  version = '0.9.7';
+  version = '0.9.8';
   icon = 'src/en/novelupdates/icon.png';
   customCSS = 'src/en/novelupdates/customCSS.css';
   site = 'https://www.novelupdates.com/';
@@ -415,21 +415,26 @@ class NovelUpdates implements Plugin.PluginBase {
       case 'greenztl': {
         const chapterSlug = chapterPath.split('/').pop();
         const apiUrl = `https://greenztl.com/api/chapters/slug/${chapterSlug}`;
-        const response = await fetchApi(apiUrl);
-        const json = await response.json();
 
-        const chapterCheerio = parseHTML(json.data.content);
+        try {
+          const response = await fetchApi(apiUrl);
+          const json = await response.json();
 
-        //chapterContent = chapterCheerio.html()!;
+          const chapterCheerio = parseHTML(json.data.content);
 
-        const paragraphs = chapterCheerio('p')
-          .map((_, el) => {
-            const pContent = chapterCheerio(el).html();
-            return pContent ? `<p>${pContent}</p>` : null;
-          })
-          .get();
+          //chapterContent = chapterCheerio.html()!;
 
-        chapterContent = paragraphs.filter(Boolean).join('<br>');
+          const paragraphs = chapterCheerio('p')
+            .map((_, el) => {
+              const pContent = chapterCheerio(el).html();
+              return pContent ? `<p>${pContent}</p>` : null;
+            })
+            .get();
+
+          chapterContent = paragraphs.filter(Boolean).join('<br>');
+        } catch (error) {
+          throw new Error(`Failed to parse GreenzTL chapter: ${error}`);
+        }
       }
       // Last edited in 0.9.0 by Batorian - 19/03/2025
       case 'helscans': {
