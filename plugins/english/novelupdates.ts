@@ -6,7 +6,7 @@ import { Plugin } from '@/types/plugin';
 class NovelUpdates implements Plugin.PluginBase {
   id = 'novelupdates';
   name = 'Novel Updates';
-  version = '0.9.15';
+  version = '0.9.16';
   icon = 'src/en/novelupdates/icon.png';
   customCSS = 'src/en/novelupdates/customCSS.css';
   site = 'https://www.novelupdates.com/';
@@ -390,7 +390,8 @@ class NovelUpdates implements Plugin.PluginBase {
 
           const chapterCheerio = parseHTML(json.data.content);
 
-          chapterContent = chapterCheerio('.doc-content').html()!;
+          //chapterContent = chapterCheerio('.doc-content').html()!;
+          chapterContent = chapterCheerio.html()!;
 
           /* const paragraphs = chapterCheerio('p')
             .map((_, el) => {
