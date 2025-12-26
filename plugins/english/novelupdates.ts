@@ -198,29 +198,6 @@ class NovelUpdates implements Plugin.PluginBase {
           throw new Error(`Failed to parse AkuTranslations chapter: ${error}`);
         }
       }
-      // Last edited in 0.9.4 by Batorian - 15/10/2025
-      case 'akutranslations': {
-        try {
-          const apiUrl = chapterPath.replace('/novel', '/api/novel');
-          const response = await fetchApi(apiUrl);
-          const json = await response.json();
-
-          if (!json?.content) {
-            throw new Error('Invalid API response structure.');
-          }
-
-          chapterContent = json.content
-            .trim()
-            .split(/\n+/)
-            .map((p: string) => p.trim())
-            .filter((p: string) => p.length > 0)
-            .map((p: string) => `<p>${p}</p>`)
-            .join('\n');
-          break;
-        } catch (error) {
-          throw new Error(`Failed to parse AkuTranslations chapter: ${error}`);
-        }
-      }
       // Last edited in 0.9.0 by Batorian - 19/03/2025
       case 'anotivereads': {
         chapterTitle = loadedCheerio('#comic-nav-name').first().text();
@@ -357,19 +334,6 @@ class NovelUpdates implements Plugin.PluginBase {
       // Last edited in 0.9.3 by Batorian - 09/09/2025
       case 'daoist': {
         chapterTitle = loadedCheerio('.chapter__title').first().text();
-
-        // Remove locked content indicators
-        loadedCheerio('span.patreon-lock-icon').remove();
-
-        // Handle lazy-loaded images
-        loadedCheerio('img[data-src]').each((_, el) => {
-          const $el = loadedCheerio(el);
-          const dataSrc = $el.attr('data-src');
-          if (dataSrc) {
-            $el.attr('src', dataSrc);
-            $el.removeAttr('data-src');
-          }
-        });
 
         // Remove locked content indicators
         loadedCheerio('span.patreon-lock-icon').remove();
