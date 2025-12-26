@@ -418,7 +418,7 @@ class NovelUpdates implements Plugin.PluginBase {
         const response = await fetchApi(apiUrl);
         const json = await response.json();
 
-        chapterContent = json.data.content;
+        chapterContent = json?.data?.content?.trim() || '';
       }
       // Last edited in 0.9.0 by Batorian - 19/03/2025
       case 'helscans': {
