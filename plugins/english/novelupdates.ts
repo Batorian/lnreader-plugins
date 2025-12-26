@@ -6,7 +6,7 @@ import { Plugin } from '@/types/plugin';
 class NovelUpdates implements Plugin.PluginBase {
   id = 'novelupdates';
   name = 'Novel Updates';
-  version = '0.9.16';
+  version = '0.9.17';
   icon = 'src/en/novelupdates/icon.png';
   customCSS = 'src/en/novelupdates/customCSS.css';
   site = 'https://www.novelupdates.com/';
@@ -388,20 +388,12 @@ class NovelUpdates implements Plugin.PluginBase {
           const response = await fetchApi(apiUrl);
           const json = await response.json();
 
+          const chapterName = json.data.name;
+          const chapterNumber = json.data.chapterNumber;
           const chapterCheerio = parseHTML(json.data.content);
 
-          //chapterContent = chapterCheerio('.doc-content').html()!;
+          chapterTitle = `Chapter ${chapterNumber} - ${chapterName}`;
           chapterContent = chapterCheerio.html()!;
-
-          /* const paragraphs = chapterCheerio('p')
-            .map((_, el) => {
-              const pContent = chapterCheerio(el).html();
-              return pContent ? `<p>${pContent}</p>` : null;
-            })
-            .get();
-
-          chapterContent =
-            paragraphs.filter(Boolean).join(''); */
         } catch (error) {
           throw new Error(`Failed to parse GreenzTL chapter: ${error}`);
         }
@@ -513,6 +505,80 @@ class NovelUpdates implements Plugin.PluginBase {
         bloatElements.forEach(tag => loadedCheerio(tag).remove());
         chapterTitle = loadedCheerio('.halChap--jud').first().text();
         chapterContent = loadedCheerio('.halChap--kontenInner ').html()!;
+        break;
+      }
+      case 'novelshub': {
+        const segments = chapterPath.split('/');
+        const novelSlug = segments[segments.length - 2];
+        const chapterSlug = segments[segments.length - 1];
+        const apiUrl = `https://api.novelshub.org/api/chapter?mangaslug=${novelSlug}&chapterslug=${chapterSlug}`;
+
+        try {
+          const response = await fetchApi(apiUrl);
+          const json = await response.json();
+
+          const chapterNumber = json.chapter.number;
+          const chapterCheerio = parseHTML(json.chapter.content);
+
+          chapterTitle = `Chapter ${chapterNumber}`;
+          chapterCheerio('div').each((_, element) => {
+            const el = chapterCheerio(element);
+            const style = el.attr('style');
+            if (!style) return; // Skip elements without inline styles
+            // Orange box
+            if (/border:.*#ff6b00/.test(style)) {
+              el.removeAttr('style').addClass('novels-hub_box_orange');
+              // Orange box title
+            } else if (
+              /color:.*#ff6b00.*text-transform:.*uppercase/.test(style)
+            ) {
+              el.removeAttr('style').addClass('novels-hub_box-title_orange');
+              // Orange box text
+            } else if (/color:.*white.*border-top:.*#ff6b00/.test(style)) {
+              el.removeAttr('style').addClass('novels-hub_box-text_orange');
+              // Green box
+            } else if (/border:.*#00ff88/.test(style)) {
+              el.removeAttr('style').addClass('novels-hub_box_green');
+              // Green box title
+            } else if (
+              /color:.*#00ff88.*text-transform:.*uppercase/.test(style)
+            ) {
+              el.removeAttr('style').addClass('novels-hub_box-title_green');
+              // Green comment
+            } else if (/border-left:.*#00ff88/.test(style)) {
+              el.removeAttr('style').addClass('novels-hub_comment_green');
+              // Blue box
+            } else if (/border:.*#0066ff/.test(style)) {
+              el.removeAttr('style').addClass('novels-hub_box_blue');
+              // Blue box title
+            } else if (
+              /color:.*#0099ff.*text-transform:.*uppercase/.test(style)
+            ) {
+              el.removeAttr('style').addClass('novels-hub_box-title_blue');
+              // Blue box text
+            } else if (/color:.*#d0d0d0/.test(style)) {
+              el.removeAttr('style').addClass('novels-hub_box-text_blue');
+            }
+          });
+          chapterCheerio('span').each((_, element) => {
+            const el = chapterCheerio(element);
+            const style = el.attr('style');
+            if (!style) return; // Skip elements without inline styles
+            // Red text
+            if (/color:.*#ff6b6b/.test(style)) {
+              el.removeAttr('style').addClass('novels-hub_text_red');
+              // Blue text
+            } else if (/color:.*#4d9fff/.test(style)) {
+              el.removeAttr('style').addClass('novels-hub_text_blue');
+              // Purple text
+            } else if (/color:.*#a78bfa/.test(style)) {
+              el.removeAttr('style').addClass('novels-hub_text_purple');
+            }
+          });
+          chapterContent = chapterCheerio.html()!;
+        } catch (error) {
+          throw new Error(`Failed to parse GreenzTL chapter: ${error}`);
+        }
         break;
       }
       // Last edited in 0.9.0 by Batorian - 19/03/2025
