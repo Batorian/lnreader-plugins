@@ -6,7 +6,7 @@ import { Plugin } from '@/types/plugin';
 class NovelUpdates implements Plugin.PluginBase {
   id = 'novelupdates';
   name = 'Novel Updates';
-  version = '0.9.12';
+  version = '0.9.13';
   icon = 'src/en/novelupdates/icon.png';
   customCSS = 'src/en/novelupdates/customCSS.css';
   site = 'https://www.novelupdates.com/';
@@ -975,6 +975,7 @@ class NovelUpdates implements Plugin.PluginBase {
     if (!isWordPress && !isBlogspot) {
       chapterText = await this.getChapterBody(loadedCheerio, domainParts, url);
     } else {
+      throw new Error('Triggered platform-specific extraction.');
       const config = isWordPress
         ? PLATFORM_CONFIG.wordpress
         : PLATFORM_CONFIG.blogspot;
