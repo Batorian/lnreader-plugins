@@ -6,7 +6,7 @@ import { Plugin } from '@/types/plugin';
 class NovelUpdates implements Plugin.PluginBase {
   id = 'novelupdates';
   name = 'Novel Updates';
-  version = '0.9.4';
+  version = '0.9.5';
   icon = 'src/en/novelupdates/icon.png';
   customCSS = 'src/en/novelupdates/customCSS.css';
   site = 'https://www.novelupdates.com/';
@@ -410,6 +410,15 @@ class NovelUpdates implements Plugin.PluginBase {
           throw new Error(`Failed to fetch chapter data: ${error}`);
         }
         break;
+      }
+      // Last edited in 0.9.5 by Batorian - 26/12/2025
+      case 'greenztl': {
+        const chapterSlug = chapterPath.split('/').pop();
+        const apiUrl = `https://greenztl.com/api/chapters/slug/${chapterSlug}`;
+        const response = await fetchApi(apiUrl);
+        const json = await response.json();
+
+        chapterContent = json.data.content;
       }
       // Last edited in 0.9.0 by Batorian - 19/03/2025
       case 'helscans': {
