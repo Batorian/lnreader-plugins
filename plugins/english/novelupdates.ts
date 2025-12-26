@@ -6,7 +6,7 @@ import { Plugin } from '@/types/plugin';
 class NovelUpdates implements Plugin.PluginBase {
   id = 'novelupdates';
   name = 'Novel Updates';
-  version = '0.9.13';
+  version = '0.9.14';
   icon = 'src/en/novelupdates/icon.png';
   customCSS = 'src/en/novelupdates/customCSS.css';
   site = 'https://www.novelupdates.com/';
@@ -404,6 +404,7 @@ class NovelUpdates implements Plugin.PluginBase {
         } catch (error) {
           throw new Error(`Failed to parse GreenzTL chapter: ${error}`);
         }
+        break;
       }
       // Last edited in 0.9.0 by Batorian - 19/03/2025
       case 'hiraethtranslation': {
@@ -975,7 +976,6 @@ class NovelUpdates implements Plugin.PluginBase {
     if (!isWordPress && !isBlogspot) {
       chapterText = await this.getChapterBody(loadedCheerio, domainParts, url);
     } else {
-      throw new Error('Triggered platform-specific extraction.');
       const config = isWordPress
         ? PLATFORM_CONFIG.wordpress
         : PLATFORM_CONFIG.blogspot;
