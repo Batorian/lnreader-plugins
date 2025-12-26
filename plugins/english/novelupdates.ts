@@ -6,7 +6,7 @@ import { Plugin } from '@/types/plugin';
 class NovelUpdates implements Plugin.PluginBase {
   id = 'novelupdates';
   name = 'Novel Updates';
-  version = '0.9.8';
+  version = '0.9.9';
   icon = 'src/en/novelupdates/icon.png';
   customCSS = 'src/en/novelupdates/customCSS.css';
   site = 'https://www.novelupdates.com/';
@@ -858,30 +858,65 @@ class NovelUpdates implements Plugin.PluginBase {
       );
     }
 
-    // Detect platforms
-    let isBlogspot = ['blogspot', 'blogger'].some(keyword =>
-      [
-        loadedCheerio('meta[name="google-adsense-platform-domain"]').attr(
-          'content',
-        ),
-        loadedCheerio('meta[name="generator"]').attr('content'),
-      ].some(meta => meta?.toLowerCase().includes(keyword)),
-    );
+    // Helper to safely check if any element matches a regex or string
+    const matches = (selector: string, attr: string | null, regex: RegExp) => {
+      let found = false;
+      loadedCheerio(selector).each((_, el) => {
+        const val = attr
+          ? loadedCheerio(el).attr(attr)
+          : loadedCheerio(el).html() || loadedCheerio(el).text();
+        if (val && regex.test(val.toLowerCase())) {
+          found = true;
+          return false;
+        }
+      });
+      return found;
+    };
 
-    let isWordPress = ['wordpress', 'site kit by google'].some(keyword =>
-      [
-        loadedCheerio('#dcl_comments-js-extra').html(),
-        loadedCheerio('meta[name="generator"]').attr('content'),
-        loadedCheerio('.powered-by').text(),
-        loadedCheerio('footer').text(),
-      ].some(meta => meta?.toLowerCase().includes(keyword)),
-    );
+    // --- WordPress Detection ---
+    let isWordPress = [
+      // 1. Meta Generator
+      matches('meta[name="generator"]', 'content', /wordpress|site kit/i),
+      // 2. Resource Paths (The most reliable way)
+      matches('link, script, img', 'src', /\/wp-content\/|\/wp-includes\//i),
+      matches('link', 'href', /\/wp-content\/|\/wp-includes\//i),
+      // 3. Header Links (REST API, RSD, etc.)
+      matches('link[rel="https://api.w.org/"]', 'href', /.*/),
+      matches('link[rel="EditURI"]', 'href', /xmlrpc\.php/i),
+      // 4. Common Body Classes
+      matches('body', 'class', /wp-admin|wp-custom-logo|logged-in/i),
+      // 5. Scripts containing WP globals
+      matches('script', null, /wp-embed|wp-emoji|wp-block/i),
+    ].some(Boolean);
 
-    // Manually set WordPress flag for known sites
-    const manualWordPress = ['etherreads', 'greenztl2', 'soafp'];
-    if (!isWordPress && domainParts.some(wp => manualWordPress.includes(wp))) {
-      isWordPress = true;
-    }
+    // --- Blogspot / Blogger Detection ---
+    let isBlogspot = [
+      // 1. Meta Tags
+      matches('meta[name="generator"]', 'content', /blogger/i),
+      matches(
+        'meta[name="google-adsense-platform-domain"]',
+        'content',
+        /blogspot/i,
+      ),
+      // 2. Feed links
+      matches(
+        'link[rel="alternate"]',
+        'href',
+        /blogger\.com\/feeds|blogspot\.com\/feeds/i,
+      ),
+      // 3. Specific Blogger CSS/Template markers
+      matches(
+        'link',
+        'href',
+        /www\.blogger\.com\/static|www\.blogger\.com\/dyn-css/i,
+      ),
+      // 4. Blogger Script Widget Manager
+      matches(
+        'script',
+        null,
+        /_WidgetManager\._Init|_WidgetManager\._RegisterWidget/i,
+      ),
+    ].some(Boolean);
 
     // Handle outlier sites
     const outliers = [
@@ -947,88 +982,102 @@ class NovelUpdates implements Plugin.PluginBase {
      * - Zetro Translation (Outlier)
      */
 
-    // Fetch chapter content based on detected platform
+    // Define Platform Configurations
+    const PLATFORM_CONFIG = {
+      wordpress: {
+        bloat: [
+          '.ad',
+          '.author-avatar',
+          '.chapter-warning',
+          '.entry-meta',
+          '.ezoic-ad',
+          '.mb-center',
+          '.modern-footnotes-footnote__note',
+          '.patreon-widget',
+          '.post-cats',
+          '.pre-bar',
+          '.sharedaddy',
+          '.sidebar',
+          '.swg-button-v2-light',
+          '.wp-block-buttons',
+          '.wp-dark-mode-switcher',
+          '.wp-next-post-navi',
+          '#hpk',
+          '#jp-post-flair',
+          '#textbox',
+        ],
+        title: [
+          '.entry-title',
+          '.chapter__title',
+          '.title-content',
+          '.wp-block-post-title',
+          '.title_story',
+          '#chapter-heading',
+          '.chapter-title',
+          'head title',
+          'h1:first-of-type',
+          'h2:first-of-type',
+          '.active',
+        ],
+        content: [
+          '.chapter__content',
+          '.entry-content',
+          '.text_story',
+          '.post-content',
+          '.contenta',
+          '.single_post',
+          '.main-content',
+          '.reader-content',
+          '#content',
+          '#the-content',
+          'article.post',
+          '.chp_raw',
+        ],
+      },
+      blogspot: {
+        bloat: ['.button-container', '.ChapterNav', '.ch-bottom', '.separator'],
+        title: ['.entry-title', '.post-title', 'head title'],
+        content: ['.content-post', '.entry-content', '.post-body'],
+      },
+    };
+
+    // Extraction Logic
     if (!isWordPress && !isBlogspot) {
       chapterText = await this.getChapterBody(loadedCheerio, domainParts, url);
     } else {
-      const bloatElements = isBlogspot
-        ? ['.button-container', '.ChapterNav', '.ch-bottom', '.separator']
-        : [
-            '.ad',
-            '.author-avatar',
-            '.chapter-warning',
-            '.entry-meta',
-            '.ezoic-ad',
-            '.mb-center',
-            '.modern-footnotes-footnote__note',
-            '.patreon-widget',
-            '.post-cats',
-            '.pre-bar',
-            '.sharedaddy',
-            '.sidebar',
-            '.swg-button-v2-light',
-            '.wp-block-buttons',
-            //'.wp-block-columns',
-            '.wp-dark-mode-switcher',
-            '.wp-next-post-navi',
-            '#hpk',
-            '#jp-post-flair',
-            '#textbox',
-          ];
+      const config = isWordPress
+        ? PLATFORM_CONFIG.wordpress
+        : PLATFORM_CONFIG.blogspot;
 
-      bloatElements.forEach(tag => loadedCheerio(tag).remove());
+      // Remove platform-specific bloat
+      config.bloat.forEach(tag => loadedCheerio(tag).remove());
 
-      // Extract title
-      const titleSelectors = isBlogspot
-        ? ['.entry-title', '.post-title', 'head title']
-        : [
-            '.entry-title',
-            '.chapter__title',
-            '.title-content',
-            '.wp-block-post-title',
-            '.title_story',
-            '#chapter-heading',
-            '.chapter-title',
-            'head title',
-            'h1:first-of-type',
-            'h2:first-of-type',
-            '.active',
-          ];
-      let chapterTitle = titleSelectors
-        .map(sel => loadedCheerio(sel).first().text())
-        .find(text => text);
+      // Extract Title (Simplified find)
+      let chapterTitle = config.title
+        .map(sel => loadedCheerio(sel).first().text().trim())
+        .find(text => text.length > 0);
 
-      // Extract subtitle (if any)
+      // Handle Subtitles
       const chapterSubtitle =
         loadedCheerio('.cat-series').first().text() ||
         loadedCheerio('h1.leading-none ~ span').first().text();
+
       if (chapterSubtitle) chapterTitle = chapterSubtitle;
 
-      // Extract content
-      const contentSelectors = isBlogspot
-        ? ['.content-post', '.entry-content', '.post-body']
-        : [
-            '.chapter__content',
-            '.entry-content',
-            '.text_story',
-            '.post-content',
-            '.contenta',
-            '.single_post',
-            '.main-content',
-            '.reader-content',
-            '#content',
-            '#the-content',
-            'article.post',
-            '.chp_raw',
-          ];
-      const chapterContent = contentSelectors
-        .map(sel => loadedCheerio(sel).html()!)
+      // Extract Content (Scoped search)
+      const chapterContent = config.content
+        .map(sel => {
+          const el = loadedCheerio(sel).first();
+          // Ensure we don't pick up empty containers
+          return el.text().trim().length > 50 ? el.html() : null;
+        })
         .find(html => html);
 
+      // Construct Final Text
       if (chapterTitle && chapterContent) {
         chapterText = `<h2>${chapterTitle}</h2><hr><br>${chapterContent}`;
       } else {
-        chapterText = chapterContent;
+        chapterText = chapterContent || '';
       }
     }
 
