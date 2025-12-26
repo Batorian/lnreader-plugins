@@ -6,7 +6,7 @@ import { Plugin } from '@/types/plugin';
 class NovelUpdates implements Plugin.PluginBase {
   id = 'novelupdates';
   name = 'Novel Updates';
-  version = '0.9.6';
+  version = '0.9.7';
   icon = 'src/en/novelupdates/icon.png';
   customCSS = 'src/en/novelupdates/customCSS.css';
   site = 'https://www.novelupdates.com/';
@@ -419,7 +419,17 @@ class NovelUpdates implements Plugin.PluginBase {
         const json = await response.json();
 
         const chapterCheerio = parseHTML(json.data.content);
-        chapterContent = chapterCheerio.html()!;
+
+        //chapterContent = chapterCheerio.html()!;
+
+        const paragraphs = chapterCheerio('p')
+          .map((_, el) => {
+            const pContent = chapterCheerio(el).html();
+            return pContent ? `<p>${pContent}</p>` : null;
+          })
+          .get();
+
+        chapterContent = paragraphs.filter(Boolean).join('<br>');
       }
       // Last edited in 0.9.0 by Batorian - 19/03/2025
       case 'helscans': {
