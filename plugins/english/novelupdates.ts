@@ -6,7 +6,7 @@ import { Plugin } from '@/types/plugin';
 class NovelUpdates implements Plugin.PluginBase {
   id = 'novelupdates';
   name = 'Novel Updates';
-  version = '0.9.9';
+  version = '0.9.10';
   icon = 'src/en/novelupdates/icon.png';
   customCSS = 'src/en/novelupdates/customCSS.css';
   site = 'https://www.novelupdates.com/';
@@ -194,43 +194,6 @@ class NovelUpdates implements Plugin.PluginBase {
         } catch (error) {
           throw new Error(`Failed to parse AkuTranslations chapter: ${error}`);
         }
-      }
-      // Last edited in 0.9.0 by Batorian - 19/03/2025
-      case 'anotivereads': {
-        chapterTitle = loadedCheerio('#comic-nav-name').first().text();
-        chapterContent = loadedCheerio('#spliced-comic').html()!;
-        break;
-      }
-      // Last edited in 0.9.0 by Batorian - 19/03/2025
-      case 'arcanetranslations': {
-        bloatElements = ['.bottomnav'];
-        bloatElements.forEach(tag => loadedCheerio(tag).remove());
-        chapterTitle = loadedCheerio('.epwrapper .cat-series').first().text();
-        loadedCheerio('.entry-content div, .entry-content span').each(
-          (_, element) => {
-            const el = loadedCheerio(element);
-            const style = el.attr('style');
-            if (!style) return; // Skip elements without inline styles
-            if (/border:.*#00219b/.test(style)) {
-              el.removeAttr('style').addClass('arcane_box_blue'); // Blue box
-            } else if (/border:.*white/.test(style)) {
-              el.removeAttr('style').addClass('arcane_box_white'); // White box
-            } else if (
-              style.includes('text-transform: uppercase') &&
-              /text-shadow:.*blue/.test(style)
-            ) {
-              el.removeAttr('style').addClass('arcane_title_blue'); // Blue title
-            } else if (/text-shadow:.*blue/.test(style)) {
-              el.removeAttr('style').addClass('arcane_text_blue'); // Blue text
-            } else if (/text-shadow:.*lightyellow/.test(style)) {
-              el.removeAttr('style').addClass('arcane_text_lightyellow'); // Lightyellow text
-            } else if (/color:.*#ff00ff/.test(style)) {
-              el.removeAttr('style').addClass('arcane_text_pink'); // Pink text
-            }
-          },
-        );
-        chapterContent = loadedCheerio('.entry-content').html()!;
-        break;
       }
       // Last edited in 0.9.0 by Batorian - 19/03/2025
       case 'asuratls': {
@@ -437,24 +400,6 @@ class NovelUpdates implements Plugin.PluginBase {
         }
       }
       // Last edited in 0.9.0 by Batorian - 19/03/2025
-      case 'helscans': {
-        chapterTitle = loadedCheerio('.entry-title-main').first().text();
-        const chapterString_helscans =
-          'Chapter ' + chapterTitle.split('Chapter')[1].trim();
-        loadedCheerio('#readerarea.rdminimal')
-          .children()
-          .each((_, el) => {
-            const elementText = loadedCheerio(el).text();
-            if (elementText.includes(chapterString_helscans)) {
-              chapterTitle = elementText;
-              loadedCheerio(el).remove();
-              return false;
-            }
-          });
-        chapterContent = loadedCheerio('#readerarea.rdminimal').html()!;
-        break;
-      }
-      // Last edited in 0.9.0 by Batorian - 19/03/2025
       case 'hiraethtranslation': {
         chapterTitle = loadedCheerio('li.active').first().text();
         chapterContent = loadedCheerio('.text-left').html()!;
@@ -466,7 +411,7 @@ class NovelUpdates implements Plugin.PluginBase {
         chapterContent = loadedCheerio('#chapter-content').html()!;
         break;
       }
-      // Last edited in 0.9.0 by Batorian - 19/03/2025
+      // Last edited in 0.9.5 by Batorian - 26/12/2025
       case 'infinitenoveltranslations': {
         // Get the chapter link from the main page
         const url = loadedCheerio('article > p > a').first().attr('href')!;
@@ -475,8 +420,8 @@ class NovelUpdates implements Plugin.PluginBase {
           const body = await response.text();
           loadedCheerio = parseHTML(body);
         }
-        chapterContent = loadedCheerio('.hentry').html()!;
-        chapterTitle = loadedCheerio('.page-entry-title').text();
+        chapterContent = loadedCheerio('.entry-content').html()!;
+        chapterTitle = loadedCheerio('.entry-title').text();
         break;
       }
       // Last edited in 0.9.0 by Batorian - 19/03/2025
@@ -804,19 +749,6 @@ class NovelUpdates implements Plugin.PluginBase {
         chapterText = await fetchApi(json).then(r => r.text());
         break;
       }
-      // Last edited in 0.9.0 by Batorian - 19/03/2025
-      case 'zetrotranslation': {
-        chapterContent = loadedCheerio('.text-left').html()!;
-        const titleElement = loadedCheerio('.text-left h2').first();
-        if (titleElement.length) {
-          chapterTitle = titleElement.text();
-          titleElement.remove();
-          chapterContent = loadedCheerio('.text-left').html()!;
-        } else if (chapterContent) {
-          chapterTitle = loadedCheerio('.active').first().text();
-        }
-        break;
-      }
     }
     if (!chapterText) {
       if (chapterTitle) {
@@ -920,11 +852,8 @@ class NovelUpdates implements Plugin.PluginBase {
 
     // Handle outlier sites
     const outliers = [
-      'anotivereads',
-      'arcanetranslations',
       'asuratls',
       'fictionread',
-      'helscans',
       'hiraethtranslation',
       'infinitenoveltranslations',
       'machineslicedbread',
@@ -934,7 +863,6 @@ class NovelUpdates implements Plugin.PluginBase {
       'stabbingwithasyringe',
       'tinytranslation',
       'vampiramtl',
-      'zetrotranslation',
     ];
     if (domainParts.some(d => outliers.includes(d))) {
       isWordPress = false;
@@ -952,18 +880,13 @@ class NovelUpdates implements Plugin.PluginBase {
      * - Toasteful
      *
      * WordPress sites:
-     * - Anomlaously Creative (Outlier)
-     * - Arcane Translations (Outlier)
-     * - Blossom Translation
      * - Dumah's Translations
-     * - ElloMTL
      * - Ether Reads
      * - Femme Fables
      * - Gadgetized Panda Translation
-     * - Gem Novels
      * - Goblinslate
-     * - Hel Scans (Outlier)
      * - Hiraeth Translation (Outlier)
+     * - Infinite Novel Translations (Outlier)
      * - ippotranslations
      * - JATranslations
      * - Light Novels Translations
@@ -972,14 +895,15 @@ class NovelUpdates implements Plugin.PluginBase {
      * - Neosekai Translations
      * - Noice Translations
      * - Shanghai Fantasy
-     * - Soafp (Manually added)
+     * - Sleepy Translations
+     * - Soafp
      * - Stabbing with a Syringe (Outlier)
      * - StoneScape
      * - TinyTL (Outlier)
      * - VampiraMTL (Outlier)
      * - Wonder Novels
      * - Yong Library
-     * - Zetro Translation (Outlier)
+     * - Zetro Translation
      */
 
     // Define Platform Configurations
@@ -1060,7 +984,8 @@ class NovelUpdates implements Plugin.PluginBase {
       // Handle Subtitles
       const chapterSubtitle =
         loadedCheerio('.cat-series').first().text() ||
-        loadedCheerio('h1.leading-none ~ span').first().text();
+        loadedCheerio('h1.leading-none ~ span').first().text() ||
+        loadedCheerio('.breadcrumb .active').first().text();
 
       if (chapterSubtitle) chapterTitle = chapterSubtitle;
 
