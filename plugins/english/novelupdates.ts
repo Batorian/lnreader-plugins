@@ -355,7 +355,6 @@ class NovelUpdates implements Plugin.PluginBase {
         }
       }
       // Last edited in 0.9.3 by Batorian - 09/09/2025
-      // Last edited in 0.9.3 by Batorian - 09/09/2025
       case 'daoist': {
         chapterTitle = loadedCheerio('.chapter__title').first().text();
 
