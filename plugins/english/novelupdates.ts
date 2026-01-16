@@ -6,7 +6,7 @@ import { Plugin } from '@/types/plugin';
 class NovelUpdates implements Plugin.PluginBase {
   id = 'novelupdates';
   name = 'Novel Updates';
-  version = '0.9.6';
+  version = '0.9.13';
   icon = 'src/en/novelupdates/icon.png';
   customCSS = 'src/en/novelupdates/customCSS.css';
   site = 'https://www.novelupdates.com/';
@@ -468,7 +468,7 @@ class NovelUpdates implements Plugin.PluginBase {
       case 'leafstudio': {
         chapterTitle = loadedCheerio('.title').first().text();
         chapterContent = loadedCheerio('.chapter_content')
-          .map((_, el) => loadedCheerio(el).html())
+          .map((_, el) => loadedCheerio(el).prop('outerHTML'))
           .get()
           .join('');
         break;
