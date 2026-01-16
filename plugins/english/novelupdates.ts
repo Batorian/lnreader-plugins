@@ -6,7 +6,7 @@ import { Plugin } from '@/types/plugin';
 class NovelUpdates implements Plugin.PluginBase {
   id = 'novelupdates';
   name = 'Novel Updates';
-  version = '0.9.12';
+  version = '0.9.6';
   icon = 'src/en/novelupdates/icon.png';
   customCSS = 'src/en/novelupdates/customCSS.css';
   site = 'https://www.novelupdates.com/';
@@ -315,7 +315,7 @@ class NovelUpdates implements Plugin.PluginBase {
       case 'dreamy-translations': {
         chapterTitle = loadedCheerio('h1 > span').first().text();
 
-        const content = loadedCheerio('.chapter-content > div');
+        const content = loadedCheerio('.chapter-content > div').first();
         content.children('em').wrap('<p></p>');
 
         chapterContent = content.html()!;
