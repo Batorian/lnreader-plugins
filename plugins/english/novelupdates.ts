@@ -6,7 +6,7 @@ import { Plugin } from '@/types/plugin';
 class NovelUpdates implements Plugin.PluginBase {
   id = 'novelupdates';
   name = 'Novel Updates';
-  version = '0.9.8';
+  version = '0.9.9';
   icon = 'src/en/novelupdates/icon.png';
   customCSS = 'src/en/novelupdates/customCSS.css';
   site = 'https://www.novelupdates.com/';
@@ -316,7 +316,7 @@ class NovelUpdates implements Plugin.PluginBase {
         chapterTitle = loadedCheerio('h1 > span').first().text();
 
         const content = loadedCheerio('.chapter-content');
-        content.find('em').each((_, el) => {
+        content.children('em').each((_, el) => {
           const $em = loadedCheerio(el);
           $em.replaceWith(`<p>${$em.html()}</p>`);
         });
